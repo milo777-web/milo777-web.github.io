@@ -228,12 +228,6 @@ section {
   padding-bottom: 30px;
 }
 
-/* The visitor widget still runs and counts, it just is not drawn.
-   Delete this rule to show the globe again. */
-footer {
-  display: none;
-}
-
 /* ---------------------------------------------------------------- tab bar */
 
 .tabs {
