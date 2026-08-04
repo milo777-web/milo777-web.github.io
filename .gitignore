@@ -1,0 +1,14 @@
+# File
+.DS_Store
+git-update.sh
+
+# Source figures for the site (web-sized copies live in images/pubs/)
+paper_visuals/
+
+# Local backups
+stylesheets/styles.original.css
+
+# Local tooling
+.claude/
+.mcp.json
+CLAUDE.md

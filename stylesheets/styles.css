@@ -1,0 +1,792 @@
+/* =========================================================================
+   Minimal academic theme on a 60 / 30 / 10 palette.
+     60%  oatmeal white  #F9F9F6 — the page
+     30%  deep sage      #2C4A3E — headings, structure, emphasis
+     10%  terracotta     #E06D53 — links and calls to action
+   Typography follows the clarity template (lorenmt/clarity-template).
+   ========================================================================= */
+
+@font-face {
+  font-family: 'FounderKaiTi';
+  src: url('../fonts/FZZJ-FYJW.eot');
+  src:
+    url('../fonts/FZZJ-FYJW.eot?#font-spider') format('embedded-opentype'),
+    url('../fonts/FZZJ-FYJW.woff') format('woff'),
+    url('../fonts/FZZJ-FYJW.TTF') format('truetype'),
+    url('../fonts/FZZJ-FYJW.svg') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.chntitle {
+  font-family: 'FounderKaiTi';
+}
+
+/* Charter — the text face used by the clarity template.
+   Bitstream Charter is free for commercial use. */
+@font-face {
+  font-family: 'Charter';
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+  src: url('../fonts/Charter/charter_regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Charter';
+  font-style: italic;
+  font-weight: normal;
+  font-display: swap;
+  src: url('../fonts/Charter/charter_italic.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Charter';
+  font-style: normal;
+  font-weight: bold;
+  font-display: swap;
+  src: url('../fonts/Charter/charter_bold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Charter';
+  font-style: italic;
+  font-weight: bold;
+  font-display: swap;
+  src: url('../fonts/Charter/charter_bold_italic.woff2') format('woff2');
+}
+
+/* ----------------------------------------------------------------- palette */
+
+:root {
+  --page:      #f9f9f6;   /* 60 */
+  --panel:     #ffffff;
+
+  --ink:       #2c4a3e;   /* 30 — headings, titles, emphasis */
+  --body:      #3f4a45;   /* running text                    */
+  --ink-soft:  #5d6b64;
+  --ink-faint: #8a968f;
+  --rule:      #e2e6e1;
+
+  --accent:      #e06d53; /* 10 — links, CTA */
+  --accent-soft: #f7ded6;
+  --sage:        #eef1ed; /* 30 tinted — quiet fills */
+  --sage-light:  #4c7f66; /* 30 lightened — in-prose emphasis */
+
+  --text: 'Charter', 'Iowan Old Style', Georgia, Cambria, 'Times New Roman', serif;
+  --sans: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif,
+          "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* --------------------------------------------------------------------- base */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 56px 40px 40px;
+  /* full-height column so the colophon can sit at the very bottom */
+  box-sizing: border-box;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font: 400 17px/1.62 var(--text);
+  color: var(--body);
+  background: var(--page);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img { max-width: 100%; }
+
+/* Author rules beat the UA sheet, so `hidden` needs saying explicitly. */
+[hidden] { display: none !important; }
+
+/* --------------------------------------------------------------- typography */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--text);
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+  margin: 0 0 18px;
+}
+
+h1 { font-size: 1.72rem; }
+h2 { font-size: 1.4rem; }
+h3, h4, h5, h6 { font-size: 1.18rem; }
+
+p, ul, ol, table, pre, dl {
+  margin: 0 0 20px;
+}
+
+small { font-size: 0.8rem; }
+
+strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* Emphasised phrases in prose take the brand sage. */
+b {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* ...except in the Research Interests opener, which uses a lighter sage. */
+.interests-intro b {
+  color: var(--sage-light);
+}
+
+education {
+  font-weight: 700;
+  font-size: 1.06rem;
+}
+
+papertitle {
+  display: block;
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.34;
+  color: var(--ink);
+  margin-bottom: 3px;
+}
+
+/* The venue line sits quiet, but the conference itself — and an "(Oral)" —
+   is picked out in the accent so it catches the eye while scanning. */
+.venue {
+  display: inline-block;
+  font-size: 0.93rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.venue strong {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+blockquote {
+  margin: 0 0 20px;
+  padding: 2px 0 2px 20px;
+  border-left: 2px solid var(--rule);
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+hr {
+  border: 0;
+  height: 1px;
+  margin: 30px 0;
+  background: var(--rule);
+}
+
+/* -------------------------------------------------------------------- links */
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+a small {
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+  margin-top: -0.3em;
+  display: block;
+}
+
+/* ------------------------------------------------------------------- layout */
+
+.wrapper {
+  width: min(900px, 100%);
+  margin: 0 auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+section {
+  min-width: 0;
+  padding-bottom: 30px;
+}
+
+/* The visitor widget still runs and counts, it just is not drawn.
+   Delete this rule to show the globe again. */
+footer {
+  display: none;
+}
+
+/* ---------------------------------------------------------------- tab bar */
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 0 30px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.tab {
+  appearance: none;
+  padding: 8px 14px 10px;
+  font-family: var(--text);
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.tab:hover { color: var(--ink); }
+
+.tab.is-active {
+  color: var(--ink);
+  font-weight: 700;
+  border-bottom-color: var(--accent);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* A panel's own heading is redundant once its tab is showing. */
+.panel[data-group="interests"] > h1,
+.panel[data-group="publications"] > h1,
+.panel[data-group="experience"] > h1,
+.panel[data-group="service"] > h1 {
+  margin-top: 6px;
+}
+
+/* -------------------------------------------------- the bio + picture block */
+
+header.intro {
+  display: block;
+  overflow: hidden; /* contains the floated portrait */
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.intro-text p {
+  margin: 0 0 12px;
+  color: var(--body);
+  font-size: 0.97rem;
+}
+
+.intro-text p.bio {
+  text-align: left;
+  margin-bottom: 14px;
+}
+
+.intro-text p.bio:last-of-type { margin-bottom: 20px; }
+
+/* The research statement is set in the sans face so it reads as a
+   standalone summary rather than another paragraph of the bio. */
+.intro-text p.bio-focus {
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+.intro-contact {
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+/* The portrait sits at the top right; the bio flows around it. */
+.intro-photo {
+  float: right;
+  margin: 4px 0 18px 30px;
+}
+
+header h1 {
+  font-size: 1.85rem;
+  margin: 0 0 14px;
+  line-height: 1.2;
+}
+
+/* ------------------------------------------------------- social icon links */
+
+.social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  clear: left;
+}
+
+.social a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--ink-soft);
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.social a:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  text-decoration: none;
+}
+
+.social svg { width: 14px; height: 14px; }
+.social i { font-size: 14px; line-height: 1; }
+
+/* ------------------------------------------------------------------- avatar */
+
+.image {
+  display: inline-block;
+  position: relative;
+}
+
+.image.avatar {
+  border-radius: 0;
+  line-height: 0;
+}
+
+.image.avatar img {
+  display: block;
+  width: 250px;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 3px;
+  border: 1px solid var(--rule);
+}
+
+/* ------------------------------------------------------- section headings */
+
+section > h1 {
+  margin: 40px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--ink);
+  font-size: 1.5rem;
+}
+
+section > h1:first-of-type { margin-top: 6px; }
+
+/* --------------------------------------------------------------- entries */
+
+section ul {
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 0;
+}
+
+section li {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+section li + li { margin-top: 20px; }
+
+/* Plain lists get a small terracotta marker. */
+section ul:not(:has(papertitle)) li {
+  position: relative;
+  padding-left: 18px;
+}
+
+section ul:not(:has(papertitle)) li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.68em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+section ul:not(:has(papertitle)) li + li { margin-top: 10px; }
+
+/* ---------------------------------------------------------------- news */
+
+section ul.news li {
+  display: block;
+  padding-left: 6.3rem;
+  text-indent: -6.3rem;
+  font-size: 0.94rem;
+  color: var(--body);
+}
+
+section ul.news li::before { display: none; }
+
+section ul.news li + li { margin-top: 8px; }
+
+.news-date {
+  display: inline-block;
+  width: 5.6rem;
+  margin-right: 0.7rem;
+  text-indent: 0;
+  font-weight: 700;
+  font-variant-numeric: lining-nums;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+section ul.news em {
+  font-style: italic;
+  color: var(--ink);
+}
+
+/* Logo used in place of an emoji at the end of a news line. */
+.news-logo {
+  width: auto;
+  height: 1em;
+  vertical-align: -0.14em;
+  image-rendering: pixelated;
+}
+
+/* Nested list, e.g. the reviewed conferences under Professional Service. */
+
+section ul.sublist {
+  margin: 6px 0 0;
+  padding: 0;
+}
+
+section ul.sublist li {
+  font-size: 0.92rem;
+  padding-left: 16px;
+}
+
+section ul.sublist li::before {
+  top: 0.62em;
+  width: 4px;
+  height: 4px;
+  background: var(--ink-faint);
+}
+
+section ul.sublist li + li { margin-top: 4px; }
+
+/* ------------------------------------------------- research-interest themes */
+
+section ul.interests li + li { margin-top: 18px; }
+
+section ul.interests strong {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+section ul.interests .tags { margin-top: 8px; }
+
+/* -------------------------------------------------- publication entries */
+
+section ul:has(papertitle) li {
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+}
+
+section ul:has(papertitle) li + li {
+  margin-top: 26px;
+}
+
+.pub-thumb {
+  flex: 0 0 190px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 190px;
+  height: 116px;
+  padding: 5px;
+  overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+}
+
+.pub-thumb img,
+.pub-thumb video {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.pub-thumb:hover { border-color: var(--accent); }
+
+/* Papers with no teaser fall back to a plain plate carrying the venue. */
+.pub-thumb--plate {
+  background: var(--sage);
+  cursor: default;
+}
+
+.pub-thumb--plate em {
+  font-style: normal;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  color: var(--ink-faint);
+}
+
+.pub-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* keeps a trailing author (or "(Oral)") from being stranded alone on a line */
+  text-wrap: pretty;
+}
+
+/* Footnote under the Publications heading. */
+.pub-note {
+  margin: -6px 0 20px;
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+}
+
+/* My own name in an author list. */
+.pub-body strong.me {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+/* ------------------------------------------------------------------- tags */
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.tags a {
+  color: inherit;
+}
+
+.tags a:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.tags span {
+  padding: 1px 9px;
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--ink-soft);
+  background: var(--sage);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------- experience entries */
+
+.org-logo {
+  width: auto;
+  height: 1.1em;
+  margin-right: 6px;
+  vertical-align: -0.18em;
+}
+
+.org-link {
+  color: inherit;
+}
+
+.org-link:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+section .meta,
+section li > p[style] {
+  float: right;
+  margin: 2px 0 0 16px;
+  padding: 0;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------ cat portraits */
+
+.cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 18px 0 0;
+}
+
+.cats figure {
+  margin: 0;
+}
+
+.cats img {
+  display: block;
+  width: 190px;
+  height: 240px;
+  object-fit: cover;
+  border-radius: 3px;
+  border: 1px solid var(--rule);
+}
+
+.cats figcaption {
+  margin-top: 6px;
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+}
+
+/* ---------------------------------------------------------------- colophon */
+
+.credit {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  font-style: normal;
+}
+
+.colophon {
+  margin: 24px 0 0;      /* margin-top:auto pins it to the bottom */
+  margin-top: auto;
+  padding-top: 24px;
+  text-align: center;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--ink-faint);
+}
+
+/* ------------------------------------------------------- code, tables, misc */
+
+code, pre {
+  font-family: ui-monospace, Monaco, "Cascadia Code", "Liberation Mono", Consolas, monospace;
+  color: var(--ink);
+}
+
+pre {
+  max-width: 100%;
+  padding: 12px 16px;
+  background: var(--sage);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--rule);
+}
+
+th, dt {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.biblink { text-decoration: none; display: inline; margin-right: 0; }
+.fakelink { text-decoration: none; cursor: pointer; }
+
+.bibref {
+  font-size: 0.72rem;
+  margin-top: 10px;
+  display: none;
+  font-family: ui-monospace, Monaco, Consolas, monospace;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ------------------------------------------------------------- responsive */
+
+@media screen and (max-width: 760px) {
+  body { padding: 32px 22px; }
+
+  .intro-photo {
+    float: none;
+    display: block;
+    margin: 0 0 18px;
+  }
+
+  header h1 { font-size: 1.55rem; }
+
+  .image.avatar img { width: 184px; height: 184px; }
+}
+
+@media screen and (max-width: 520px) {
+  body { padding: 22px 16px; }
+
+  section > h1 { font-size: 1.34rem; }
+  papertitle { font-size: 1.02rem; }
+
+  section ul:has(papertitle) li {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pub-thumb {
+    flex-basis: auto;
+    width: 100%;
+    height: 140px;
+  }
+
+  section ul.news li {
+    padding-left: 0;
+    text-indent: 0;
+  }
+
+  .news-date {
+    display: block;
+    width: auto;
+    margin: 0 0 2px;
+  }
+
+  section .meta,
+  section li > p[style] {
+    float: none;
+    display: block;
+    margin: 0 0 4px;
+  }
+
+}
+
+@media print {
+  body {
+    padding: 0.4in;
+    font-size: 11pt;
+    color: #222;
+    background: #fff;
+  }
+
+  footer { display: none; }
+
+  a { color: #222; }
+}
