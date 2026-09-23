@@ -547,9 +547,57 @@ section ul:has(papertitle) li + li {
   text-wrap: pretty;
 }
 
-/* Footnote under the Publications heading. */
+/* Category headings that mirror the grouping used in the CV. */
+.pub-group-head {
+  margin: 30px 0 18px;
+  padding: 10px 14px;
+  background: var(--sage);
+  border-left: 3px solid var(--sage-light);
+  border-radius: 3px;
+}
+
+.pub-group-head:first-of-type { margin-top: 8px; }
+
+.pub-group {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--sage-light);
+  /* Charter ships only regular + bold, so nudge past bold with a hairline stroke. */
+  font-weight: 700;
+  -webkit-text-stroke: 0.35px currentColor;
+}
+
+/* Sans face so this reads as a label, not a faint echo of the serif heading. */
+.pub-group-sub {
+  /* slight indent so it sits visually nested under the heading */
+  margin: 4px 0 0 24px;
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--sage-light);
+}
+
+/* Opening line under the Publications heading, mirroring the CV. */
+.pub-intro {
+  margin: 0 0 10px;
+  color: var(--body);
+  font-size: 0.97rem;
+}
+
+/* The three jump links echo the green of the group headings they point to. */
+.pub-intro a {
+  color: var(--sage-light);
+  font-weight: 700;
+}
+
+.pub-intro a:hover {
+  color: var(--ink);
+}
+
+/* Footnote under the one entry it applies to. */
 .pub-note {
-  margin: -6px 0 20px;
+  margin: 4px 0 0;
   font-size: 0.85rem;
   color: var(--ink-faint);
 }
