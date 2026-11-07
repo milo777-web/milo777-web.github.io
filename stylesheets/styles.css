@@ -1,0 +1,1078 @@
+/* =========================================================================
+   Minimal academic theme on a 60 / 30 / 10 palette.
+     60%  oatmeal white  #F9F9F6 — the page
+     30%  deep sage      #2C4A3E — headings, structure, emphasis
+     10%  terracotta     #E06D53 — links and calls to action
+   Typography follows the clarity template (lorenmt/clarity-template).
+   ========================================================================= */
+
+@font-face {
+  font-family: 'FounderKaiTi';
+  src: url('../fonts/FZZJ-FYJW.eot');
+  src:
+    url('../fonts/FZZJ-FYJW.eot?#font-spider') format('embedded-opentype'),
+    url('../fonts/FZZJ-FYJW.woff') format('woff'),
+    url('../fonts/FZZJ-FYJW.TTF') format('truetype'),
+    url('../fonts/FZZJ-FYJW.svg') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.chntitle {
+  font-family: 'FounderKaiTi';
+}
+
+/* Charter — the text face used by the clarity template.
+   Bitstream Charter is free for commercial use. */
+@font-face {
+  font-family: 'Charter';
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+  src: url('../fonts/Charter/charter_regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Charter';
+  font-style: italic;
+  font-weight: normal;
+  font-display: swap;
+  src: url('../fonts/Charter/charter_italic.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Charter';
+  font-style: normal;
+  font-weight: bold;
+  font-display: swap;
+  src: url('../fonts/Charter/charter_bold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Charter';
+  font-style: italic;
+  font-weight: bold;
+  font-display: swap;
+  src: url('../fonts/Charter/charter_bold_italic.woff2') format('woff2');
+}
+
+/* ----------------------------------------------------------------- palette */
+
+:root {
+  --page:      #f9f9f6;   /* 60 */
+  --panel:     #ffffff;
+
+  --ink:       #2c4a3e;   /* 30 — headings, titles, emphasis */
+  --body:      #3f4a45;   /* running text                    */
+  --ink-soft:  #5d6b64;
+  --ink-faint: #8a968f;
+  --rule:      #e2e6e1;
+
+  --accent:      #e06d53; /* 10 — links, CTA */
+  --accent-soft: #f7ded6;
+  --sage:        #eef1ed; /* 30 tinted — quiet fills */
+  --sage-light:  #4c7f66; /* 30 lightened — in-prose emphasis */
+
+  --text: 'Charter', 'Iowan Old Style', Georgia, Cambria, 'Times New Roman', serif;
+  --sans: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif,
+          "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* --------------------------------------------------------------------- base */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 56px 40px 40px;
+  /* full-height column so the colophon can sit at the very bottom */
+  box-sizing: border-box;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font: 400 17px/1.62 var(--text);
+  color: var(--body);
+  background: var(--page);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img { max-width: 100%; }
+
+/* Author rules beat the UA sheet, so `hidden` needs saying explicitly. */
+[hidden] { display: none !important; }
+
+/* --------------------------------------------------------------- typography */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--text);
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+  margin: 0 0 18px;
+}
+
+h1 { font-size: 1.72rem; }
+h2 { font-size: 1.4rem; }
+h3, h4, h5, h6 { font-size: 1.18rem; }
+
+p, ul, ol, table, pre, dl {
+  margin: 0 0 20px;
+}
+
+small { font-size: 0.8rem; }
+
+strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* Emphasised phrases in prose take the brand sage. */
+b {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* A plain accent-coloured link gets lost mid-paragraph, so the one that sends
+   you to another tab is underlined and carries an arrow. */
+.go-link {
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.hand-arrow {
+  width: 32px;
+  height: 15px;
+  margin-right: 6px;
+  vertical-align: -2px;
+  overflow: visible;
+  fill: none;
+  stroke: var(--sage-light);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* crayon outline, drawn twice with a slight offset like the research doodles */
+.arrow-body  { fill: color-mix(in srgb, var(--sage-light) 15%, transparent); }
+.arrow-ghost { opacity: 0.4; stroke-width: 1.1; }
+
+/* Highlighter pass over a phrase: a wet marker swipe, uneven at the edges
+   and pooled where the nib started and lifted, rather than a flat box. */
+mark.hl {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 48' preserveAspectRatio='none'%3E%3Cfilter id='g' x='-6%25' y='-25%25' width='112%25' height='150%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9 0.45' numOctaves='2' seed='9' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='3.2' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3Cg filter='url%28%23g%29'%3E%3Cpath d='M5 37c27 6 55 4 83 1s63-7 91-3 46 6 57 2l-3-26c-23 5-47 1-75-2S98 3 66 6 23 12 7 9z' fill='%237cc9a4' opacity='.30'/%3E%3Cpath d='M16 30c31 5 61 2 93-1s58-4 85-1l-2-11c-27-3-55 0-85 3s-63 4-91 0z' fill='%237cc9a4' opacity='.17'/%3E%3Cpath d='M6 33c4 5 8 6 13 5l-1-22c-5 0-9 2-13 6z' fill='%237cc9a4' opacity='.14'/%3E%3Cpath d='M233 34c-4 4-9 5-14 4l1-22c5 0 10 1 14 5z' fill='%237cc9a4' opacity='.14'/%3E%3C/g%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  color: inherit;
+  padding: 0.1em 0.34em 0.14em;
+  margin: 0 -0.06em;
+  border-radius: 0;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) mark.hl { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 48' preserveAspectRatio='none'%3E%3Cfilter id='g' x='-6%25' y='-25%25' width='112%25' height='150%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9 0.45' numOctaves='2' seed='9' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='3.2' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3Cg filter='url%28%23g%29'%3E%3Cpath d='M5 37c27 6 55 4 83 1s63-7 91-3 46 6 57 2l-3-26c-23 5-47 1-75-2S98 3 66 6 23 12 7 9z' fill='%23a3e3c2' opacity='.24'/%3E%3Cpath d='M16 30c31 5 61 2 93-1s58-4 85-1l-2-11c-27-3-55 0-85 3s-63 4-91 0z' fill='%23a3e3c2' opacity='.14'/%3E%3Cpath d='M6 33c4 5 8 6 13 5l-1-22c-5 0-9 2-13 6z' fill='%23a3e3c2' opacity='.12'/%3E%3Cpath d='M233 34c-4 4-9 5-14 4l1-22c5 0 10 1 14 5z' fill='%23a3e3c2' opacity='.12'/%3E%3C/g%3E%3C/svg%3E"); }
+}
+
+:root[data-theme="dark"] mark.hl { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 48' preserveAspectRatio='none'%3E%3Cfilter id='g' x='-6%25' y='-25%25' width='112%25' height='150%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9 0.45' numOctaves='2' seed='9' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='3.2' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3Cg filter='url%28%23g%29'%3E%3Cpath d='M5 37c27 6 55 4 83 1s63-7 91-3 46 6 57 2l-3-26c-23 5-47 1-75-2S98 3 66 6 23 12 7 9z' fill='%23a3e3c2' opacity='.24'/%3E%3Cpath d='M16 30c31 5 61 2 93-1s58-4 85-1l-2-11c-27-3-55 0-85 3s-63 4-91 0z' fill='%23a3e3c2' opacity='.14'/%3E%3Cpath d='M6 33c4 5 8 6 13 5l-1-22c-5 0-9 2-13 6z' fill='%23a3e3c2' opacity='.12'/%3E%3Cpath d='M233 34c-4 4-9 5-14 4l1-22c5 0 10 1 14 5z' fill='%23a3e3c2' opacity='.12'/%3E%3C/g%3E%3C/svg%3E"); }
+:root[data-theme="light"] mark.hl { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 48' preserveAspectRatio='none'%3E%3Cfilter id='g' x='-6%25' y='-25%25' width='112%25' height='150%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9 0.45' numOctaves='2' seed='9' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='3.2' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3Cg filter='url%28%23g%29'%3E%3Cpath d='M5 37c27 6 55 4 83 1s63-7 91-3 46 6 57 2l-3-26c-23 5-47 1-75-2S98 3 66 6 23 12 7 9z' fill='%237cc9a4' opacity='.30'/%3E%3Cpath d='M16 30c31 5 61 2 93-1s58-4 85-1l-2-11c-27-3-55 0-85 3s-63 4-91 0z' fill='%237cc9a4' opacity='.17'/%3E%3Cpath d='M6 33c4 5 8 6 13 5l-1-22c-5 0-9 2-13 6z' fill='%237cc9a4' opacity='.14'/%3E%3Cpath d='M233 34c-4 4-9 5-14 4l1-22c5 0 10 1 14 5z' fill='%237cc9a4' opacity='.14'/%3E%3C/g%3E%3C/svg%3E"); }
+
+/* The two ends of the digital -> physical arc get the rail's own colours. */
+mark.hl-blue  { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20240%2048%27%20preserveAspectRatio%3D%27none%27%3E%3Cfilter%20id%3D%27g%27%20x%3D%27-6%25%27%20y%3D%27-25%25%27%20width%3D%27112%25%27%20height%3D%27150%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.9%200.45%27%20numOctaves%3D%272%27%20seed%3D%279%27%20result%3D%27n%27%2F%3E%3CfeDisplacementMap%20in%3D%27SourceGraphic%27%20in2%3D%27n%27%20scale%3D%273.2%27%20xChannelSelector%3D%27R%27%20yChannelSelector%3D%27G%27%2F%3E%3C%2Ffilter%3E%3Cg%20filter%3D%27url%28%23g%29%27%3E%3Cpath%20d%3D%27M5%2037c27%206%2055%204%2083%201s63-7%2091-3%2046%206%2057%202l-3-26c-23%205-47%201-75-2S98%203%2066%206%2023%2012%207%209z%27%20fill%3D%27%2386bbe8%27%20opacity%3D%27.30%27%2F%3E%3Cpath%20d%3D%27M16%2030c31%205%2061%202%2093-1s58-4%2085-1l-2-11c-27-3-55%200-85%203s-63%204-91%200z%27%20fill%3D%27%2386bbe8%27%20opacity%3D%27.17%27%2F%3E%3Cpath%20d%3D%27M6%2033c4%205%208%206%2013%205l-1-22c-5%200-9%202-13%206z%27%20fill%3D%27%2386bbe8%27%20opacity%3D%27.14%27%2F%3E%3Cpath%20d%3D%27M233%2034c-4%204-9%205-14%204l1-22c5%200%2010%201%2014%205z%27%20fill%3D%27%2386bbe8%27%20opacity%3D%27.14%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+mark.hl-green { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20240%2048%27%20preserveAspectRatio%3D%27none%27%3E%3Cfilter%20id%3D%27g%27%20x%3D%27-6%25%27%20y%3D%27-25%25%27%20width%3D%27112%25%27%20height%3D%27150%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.9%200.45%27%20numOctaves%3D%272%27%20seed%3D%279%27%20result%3D%27n%27%2F%3E%3CfeDisplacementMap%20in%3D%27SourceGraphic%27%20in2%3D%27n%27%20scale%3D%273.2%27%20xChannelSelector%3D%27R%27%20yChannelSelector%3D%27G%27%2F%3E%3C%2Ffilter%3E%3Cg%20filter%3D%27url%28%23g%29%27%3E%3Cpath%20d%3D%27M5%2037c27%206%2055%204%2083%201s63-7%2091-3%2046%206%2057%202l-3-26c-23%205-47%201-75-2S98%203%2066%206%2023%2012%207%209z%27%20fill%3D%27%237cc9a4%27%20opacity%3D%27.30%27%2F%3E%3Cpath%20d%3D%27M16%2030c31%205%2061%202%2093-1s58-4%2085-1l-2-11c-27-3-55%200-85%203s-63%204-91%200z%27%20fill%3D%27%237cc9a4%27%20opacity%3D%27.17%27%2F%3E%3Cpath%20d%3D%27M6%2033c4%205%208%206%2013%205l-1-22c-5%200-9%202-13%206z%27%20fill%3D%27%237cc9a4%27%20opacity%3D%27.14%27%2F%3E%3Cpath%20d%3D%27M233%2034c-4%204-9%205-14%204l1-22c5%200%2010%201%2014%205z%27%20fill%3D%27%237cc9a4%27%20opacity%3D%27.14%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) mark.hl-blue  { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20240%2048%27%20preserveAspectRatio%3D%27none%27%3E%3Cfilter%20id%3D%27g%27%20x%3D%27-6%25%27%20y%3D%27-25%25%27%20width%3D%27112%25%27%20height%3D%27150%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.9%200.45%27%20numOctaves%3D%272%27%20seed%3D%279%27%20result%3D%27n%27%2F%3E%3CfeDisplacementMap%20in%3D%27SourceGraphic%27%20in2%3D%27n%27%20scale%3D%273.2%27%20xChannelSelector%3D%27R%27%20yChannelSelector%3D%27G%27%2F%3E%3C%2Ffilter%3E%3Cg%20filter%3D%27url%28%23g%29%27%3E%3Cpath%20d%3D%27M5%2037c27%206%2055%204%2083%201s63-7%2091-3%2046%206%2057%202l-3-26c-23%205-47%201-75-2S98%203%2066%206%2023%2012%207%209z%27%20fill%3D%27%23a6cdf2%27%20opacity%3D%27.24%27%2F%3E%3Cpath%20d%3D%27M16%2030c31%205%2061%202%2093-1s58-4%2085-1l-2-11c-27-3-55%200-85%203s-63%204-91%200z%27%20fill%3D%27%23a6cdf2%27%20opacity%3D%27.14%27%2F%3E%3Cpath%20d%3D%27M6%2033c4%205%208%206%2013%205l-1-22c-5%200-9%202-13%206z%27%20fill%3D%27%23a6cdf2%27%20opacity%3D%27.12%27%2F%3E%3Cpath%20d%3D%27M233%2034c-4%204-9%205-14%204l1-22c5%200%2010%201%2014%205z%27%20fill%3D%27%23a6cdf2%27%20opacity%3D%27.12%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+  :root:not([data-theme="light"]) mark.hl-green { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20240%2048%27%20preserveAspectRatio%3D%27none%27%3E%3Cfilter%20id%3D%27g%27%20x%3D%27-6%25%27%20y%3D%27-25%25%27%20width%3D%27112%25%27%20height%3D%27150%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.9%200.45%27%20numOctaves%3D%272%27%20seed%3D%279%27%20result%3D%27n%27%2F%3E%3CfeDisplacementMap%20in%3D%27SourceGraphic%27%20in2%3D%27n%27%20scale%3D%273.2%27%20xChannelSelector%3D%27R%27%20yChannelSelector%3D%27G%27%2F%3E%3C%2Ffilter%3E%3Cg%20filter%3D%27url%28%23g%29%27%3E%3Cpath%20d%3D%27M5%2037c27%206%2055%204%2083%201s63-7%2091-3%2046%206%2057%202l-3-26c-23%205-47%201-75-2S98%203%2066%206%2023%2012%207%209z%27%20fill%3D%27%23a3e3c2%27%20opacity%3D%27.24%27%2F%3E%3Cpath%20d%3D%27M16%2030c31%205%2061%202%2093-1s58-4%2085-1l-2-11c-27-3-55%200-85%203s-63%204-91%200z%27%20fill%3D%27%23a3e3c2%27%20opacity%3D%27.14%27%2F%3E%3Cpath%20d%3D%27M6%2033c4%205%208%206%2013%205l-1-22c-5%200-9%202-13%206z%27%20fill%3D%27%23a3e3c2%27%20opacity%3D%27.12%27%2F%3E%3Cpath%20d%3D%27M233%2034c-4%204-9%205-14%204l1-22c5%200%2010%201%2014%205z%27%20fill%3D%27%23a3e3c2%27%20opacity%3D%27.12%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+}
+
+:root[data-theme="dark"] mark.hl-blue  { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20240%2048%27%20preserveAspectRatio%3D%27none%27%3E%3Cfilter%20id%3D%27g%27%20x%3D%27-6%25%27%20y%3D%27-25%25%27%20width%3D%27112%25%27%20height%3D%27150%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.9%200.45%27%20numOctaves%3D%272%27%20seed%3D%279%27%20result%3D%27n%27%2F%3E%3CfeDisplacementMap%20in%3D%27SourceGraphic%27%20in2%3D%27n%27%20scale%3D%273.2%27%20xChannelSelector%3D%27R%27%20yChannelSelector%3D%27G%27%2F%3E%3C%2Ffilter%3E%3Cg%20filter%3D%27url%28%23g%29%27%3E%3Cpath%20d%3D%27M5%2037c27%206%2055%204%2083%201s63-7%2091-3%2046%206%2057%202l-3-26c-23%205-47%201-75-2S98%203%2066%206%2023%2012%207%209z%27%20fill%3D%27%23a6cdf2%27%20opacity%3D%27.24%27%2F%3E%3Cpath%20d%3D%27M16%2030c31%205%2061%202%2093-1s58-4%2085-1l-2-11c-27-3-55%200-85%203s-63%204-91%200z%27%20fill%3D%27%23a6cdf2%27%20opacity%3D%27.14%27%2F%3E%3Cpath%20d%3D%27M6%2033c4%205%208%206%2013%205l-1-22c-5%200-9%202-13%206z%27%20fill%3D%27%23a6cdf2%27%20opacity%3D%27.12%27%2F%3E%3Cpath%20d%3D%27M233%2034c-4%204-9%205-14%204l1-22c5%200%2010%201%2014%205z%27%20fill%3D%27%23a6cdf2%27%20opacity%3D%27.12%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+:root[data-theme="dark"] mark.hl-green { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20240%2048%27%20preserveAspectRatio%3D%27none%27%3E%3Cfilter%20id%3D%27g%27%20x%3D%27-6%25%27%20y%3D%27-25%25%27%20width%3D%27112%25%27%20height%3D%27150%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.9%200.45%27%20numOctaves%3D%272%27%20seed%3D%279%27%20result%3D%27n%27%2F%3E%3CfeDisplacementMap%20in%3D%27SourceGraphic%27%20in2%3D%27n%27%20scale%3D%273.2%27%20xChannelSelector%3D%27R%27%20yChannelSelector%3D%27G%27%2F%3E%3C%2Ffilter%3E%3Cg%20filter%3D%27url%28%23g%29%27%3E%3Cpath%20d%3D%27M5%2037c27%206%2055%204%2083%201s63-7%2091-3%2046%206%2057%202l-3-26c-23%205-47%201-75-2S98%203%2066%206%2023%2012%207%209z%27%20fill%3D%27%23a3e3c2%27%20opacity%3D%27.24%27%2F%3E%3Cpath%20d%3D%27M16%2030c31%205%2061%202%2093-1s58-4%2085-1l-2-11c-27-3-55%200-85%203s-63%204-91%200z%27%20fill%3D%27%23a3e3c2%27%20opacity%3D%27.14%27%2F%3E%3Cpath%20d%3D%27M6%2033c4%205%208%206%2013%205l-1-22c-5%200-9%202-13%206z%27%20fill%3D%27%23a3e3c2%27%20opacity%3D%27.12%27%2F%3E%3Cpath%20d%3D%27M233%2034c-4%204-9%205-14%204l1-22c5%200%2010%201%2014%205z%27%20fill%3D%27%23a3e3c2%27%20opacity%3D%27.12%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+:root[data-theme="light"] mark.hl-blue  { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20240%2048%27%20preserveAspectRatio%3D%27none%27%3E%3Cfilter%20id%3D%27g%27%20x%3D%27-6%25%27%20y%3D%27-25%25%27%20width%3D%27112%25%27%20height%3D%27150%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.9%200.45%27%20numOctaves%3D%272%27%20seed%3D%279%27%20result%3D%27n%27%2F%3E%3CfeDisplacementMap%20in%3D%27SourceGraphic%27%20in2%3D%27n%27%20scale%3D%273.2%27%20xChannelSelector%3D%27R%27%20yChannelSelector%3D%27G%27%2F%3E%3C%2Ffilter%3E%3Cg%20filter%3D%27url%28%23g%29%27%3E%3Cpath%20d%3D%27M5%2037c27%206%2055%204%2083%201s63-7%2091-3%2046%206%2057%202l-3-26c-23%205-47%201-75-2S98%203%2066%206%2023%2012%207%209z%27%20fill%3D%27%2386bbe8%27%20opacity%3D%27.30%27%2F%3E%3Cpath%20d%3D%27M16%2030c31%205%2061%202%2093-1s58-4%2085-1l-2-11c-27-3-55%200-85%203s-63%204-91%200z%27%20fill%3D%27%2386bbe8%27%20opacity%3D%27.17%27%2F%3E%3Cpath%20d%3D%27M6%2033c4%205%208%206%2013%205l-1-22c-5%200-9%202-13%206z%27%20fill%3D%27%2386bbe8%27%20opacity%3D%27.14%27%2F%3E%3Cpath%20d%3D%27M233%2034c-4%204-9%205-14%204l1-22c5%200%2010%201%2014%205z%27%20fill%3D%27%2386bbe8%27%20opacity%3D%27.14%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+:root[data-theme="light"] mark.hl-green { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20240%2048%27%20preserveAspectRatio%3D%27none%27%3E%3Cfilter%20id%3D%27g%27%20x%3D%27-6%25%27%20y%3D%27-25%25%27%20width%3D%27112%25%27%20height%3D%27150%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.9%200.45%27%20numOctaves%3D%272%27%20seed%3D%279%27%20result%3D%27n%27%2F%3E%3CfeDisplacementMap%20in%3D%27SourceGraphic%27%20in2%3D%27n%27%20scale%3D%273.2%27%20xChannelSelector%3D%27R%27%20yChannelSelector%3D%27G%27%2F%3E%3C%2Ffilter%3E%3Cg%20filter%3D%27url%28%23g%29%27%3E%3Cpath%20d%3D%27M5%2037c27%206%2055%204%2083%201s63-7%2091-3%2046%206%2057%202l-3-26c-23%205-47%201-75-2S98%203%2066%206%2023%2012%207%209z%27%20fill%3D%27%237cc9a4%27%20opacity%3D%27.30%27%2F%3E%3Cpath%20d%3D%27M16%2030c31%205%2061%202%2093-1s58-4%2085-1l-2-11c-27-3-55%200-85%203s-63%204-91%200z%27%20fill%3D%27%237cc9a4%27%20opacity%3D%27.17%27%2F%3E%3Cpath%20d%3D%27M6%2033c4%205%208%206%2013%205l-1-22c-5%200-9%202-13%206z%27%20fill%3D%27%237cc9a4%27%20opacity%3D%27.14%27%2F%3E%3Cpath%20d%3D%27M233%2034c-4%204-9%205-14%204l1-22c5%200%2010%201%2014%205z%27%20fill%3D%27%237cc9a4%27%20opacity%3D%27.14%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+
+mark.hl-purple { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20240%2048%27%20preserveAspectRatio%3D%27none%27%3E%3Cfilter%20id%3D%27g%27%20x%3D%27-6%25%27%20y%3D%27-25%25%27%20width%3D%27112%25%27%20height%3D%27150%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.9%200.45%27%20numOctaves%3D%272%27%20seed%3D%279%27%20result%3D%27n%27%2F%3E%3CfeDisplacementMap%20in%3D%27SourceGraphic%27%20in2%3D%27n%27%20scale%3D%273.2%27%20xChannelSelector%3D%27R%27%20yChannelSelector%3D%27G%27%2F%3E%3C%2Ffilter%3E%3Cg%20filter%3D%27url%28%23g%29%27%3E%3Cpath%20d%3D%27M5%2037c27%206%2055%204%2083%201s63-7%2091-3%2046%206%2057%202l-3-26c-23%205-47%201-75-2S98%203%2066%206%2023%2012%207%209z%27%20fill%3D%27%23ad9cdd%27%20opacity%3D%27.30%27%2F%3E%3Cpath%20d%3D%27M16%2030c31%205%2061%202%2093-1s58-4%2085-1l-2-11c-27-3-55%200-85%203s-63%204-91%200z%27%20fill%3D%27%23ad9cdd%27%20opacity%3D%27.17%27%2F%3E%3Cpath%20d%3D%27M6%2033c4%205%208%206%2013%205l-1-22c-5%200-9%202-13%206z%27%20fill%3D%27%23ad9cdd%27%20opacity%3D%27.14%27%2F%3E%3Cpath%20d%3D%27M233%2034c-4%204-9%205-14%204l1-22c5%200%2010%201%2014%205z%27%20fill%3D%27%23ad9cdd%27%20opacity%3D%27.14%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) mark.hl-purple { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20240%2048%27%20preserveAspectRatio%3D%27none%27%3E%3Cfilter%20id%3D%27g%27%20x%3D%27-6%25%27%20y%3D%27-25%25%27%20width%3D%27112%25%27%20height%3D%27150%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.9%200.45%27%20numOctaves%3D%272%27%20seed%3D%279%27%20result%3D%27n%27%2F%3E%3CfeDisplacementMap%20in%3D%27SourceGraphic%27%20in2%3D%27n%27%20scale%3D%273.2%27%20xChannelSelector%3D%27R%27%20yChannelSelector%3D%27G%27%2F%3E%3C%2Ffilter%3E%3Cg%20filter%3D%27url%28%23g%29%27%3E%3Cpath%20d%3D%27M5%2037c27%206%2055%204%2083%201s63-7%2091-3%2046%206%2057%202l-3-26c-23%205-47%201-75-2S98%203%2066%206%2023%2012%207%209z%27%20fill%3D%27%23c6b8f0%27%20opacity%3D%27.24%27%2F%3E%3Cpath%20d%3D%27M16%2030c31%205%2061%202%2093-1s58-4%2085-1l-2-11c-27-3-55%200-85%203s-63%204-91%200z%27%20fill%3D%27%23c6b8f0%27%20opacity%3D%27.14%27%2F%3E%3Cpath%20d%3D%27M6%2033c4%205%208%206%2013%205l-1-22c-5%200-9%202-13%206z%27%20fill%3D%27%23c6b8f0%27%20opacity%3D%27.12%27%2F%3E%3Cpath%20d%3D%27M233%2034c-4%204-9%205-14%204l1-22c5%200%2010%201%2014%205z%27%20fill%3D%27%23c6b8f0%27%20opacity%3D%27.12%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+}
+
+:root[data-theme="dark"] mark.hl-purple  { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20240%2048%27%20preserveAspectRatio%3D%27none%27%3E%3Cfilter%20id%3D%27g%27%20x%3D%27-6%25%27%20y%3D%27-25%25%27%20width%3D%27112%25%27%20height%3D%27150%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.9%200.45%27%20numOctaves%3D%272%27%20seed%3D%279%27%20result%3D%27n%27%2F%3E%3CfeDisplacementMap%20in%3D%27SourceGraphic%27%20in2%3D%27n%27%20scale%3D%273.2%27%20xChannelSelector%3D%27R%27%20yChannelSelector%3D%27G%27%2F%3E%3C%2Ffilter%3E%3Cg%20filter%3D%27url%28%23g%29%27%3E%3Cpath%20d%3D%27M5%2037c27%206%2055%204%2083%201s63-7%2091-3%2046%206%2057%202l-3-26c-23%205-47%201-75-2S98%203%2066%206%2023%2012%207%209z%27%20fill%3D%27%23c6b8f0%27%20opacity%3D%27.24%27%2F%3E%3Cpath%20d%3D%27M16%2030c31%205%2061%202%2093-1s58-4%2085-1l-2-11c-27-3-55%200-85%203s-63%204-91%200z%27%20fill%3D%27%23c6b8f0%27%20opacity%3D%27.14%27%2F%3E%3Cpath%20d%3D%27M6%2033c4%205%208%206%2013%205l-1-22c-5%200-9%202-13%206z%27%20fill%3D%27%23c6b8f0%27%20opacity%3D%27.12%27%2F%3E%3Cpath%20d%3D%27M233%2034c-4%204-9%205-14%204l1-22c5%200%2010%201%2014%205z%27%20fill%3D%27%23c6b8f0%27%20opacity%3D%27.12%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+:root[data-theme="light"] mark.hl-purple { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20240%2048%27%20preserveAspectRatio%3D%27none%27%3E%3Cfilter%20id%3D%27g%27%20x%3D%27-6%25%27%20y%3D%27-25%25%27%20width%3D%27112%25%27%20height%3D%27150%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.9%200.45%27%20numOctaves%3D%272%27%20seed%3D%279%27%20result%3D%27n%27%2F%3E%3CfeDisplacementMap%20in%3D%27SourceGraphic%27%20in2%3D%27n%27%20scale%3D%273.2%27%20xChannelSelector%3D%27R%27%20yChannelSelector%3D%27G%27%2F%3E%3C%2Ffilter%3E%3Cg%20filter%3D%27url%28%23g%29%27%3E%3Cpath%20d%3D%27M5%2037c27%206%2055%204%2083%201s63-7%2091-3%2046%206%2057%202l-3-26c-23%205-47%201-75-2S98%203%2066%206%2023%2012%207%209z%27%20fill%3D%27%23ad9cdd%27%20opacity%3D%27.30%27%2F%3E%3Cpath%20d%3D%27M16%2030c31%205%2061%202%2093-1s58-4%2085-1l-2-11c-27-3-55%200-85%203s-63%204-91%200z%27%20fill%3D%27%23ad9cdd%27%20opacity%3D%27.17%27%2F%3E%3Cpath%20d%3D%27M6%2033c4%205%208%206%2013%205l-1-22c-5%200-9%202-13%206z%27%20fill%3D%27%23ad9cdd%27%20opacity%3D%27.14%27%2F%3E%3Cpath%20d%3D%27M233%2034c-4%204-9%205-14%204l1-22c5%200%2010%201%2014%205z%27%20fill%3D%27%23ad9cdd%27%20opacity%3D%27.14%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+
+/* ...except in the Research Interests opener, which uses a lighter sage. */
+.interests-intro b {
+  color: var(--sage-light);
+}
+
+education {
+  font-weight: 700;
+  font-size: 1.06rem;
+}
+
+papertitle {
+  display: block;
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.34;
+  color: var(--ink);
+  margin-bottom: 3px;
+}
+
+/* The venue line sits quiet, but the conference itself — and an "(Oral)" —
+   is picked out in the accent so it catches the eye while scanning. */
+.venue {
+  display: inline-block;
+  font-size: 0.93rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.venue strong {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+blockquote {
+  margin: 0 0 20px;
+  padding: 2px 0 2px 20px;
+  border-left: 2px solid var(--rule);
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+hr {
+  border: 0;
+  height: 1px;
+  margin: 30px 0;
+  background: var(--rule);
+}
+
+/* -------------------------------------------------------------------- links */
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+a small {
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+  margin-top: -0.3em;
+  display: block;
+}
+
+/* ------------------------------------------------------------------- layout */
+
+.wrapper {
+  width: min(900px, 100%);
+  margin: 0 auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+section {
+  min-width: 0;
+  padding-bottom: 30px;
+}
+
+/* ---------------------------------------------------------------- tab bar */
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 0 30px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.tab {
+  appearance: none;
+  padding: 8px 14px 10px;
+  font-family: var(--text);
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.tab:hover { color: var(--ink); }
+
+.tab.is-active {
+  color: var(--ink);
+  font-weight: 700;
+  border-bottom-color: var(--accent);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* A panel's own heading is redundant once its tab is showing. */
+.panel[data-group="interests"] > h1,
+.panel[data-group="publications"] > h1,
+.panel[data-group="experience"] > h1,
+.panel[data-group="service"] > h1 {
+  margin-top: 6px;
+}
+
+/* -------------------------------------------------- the bio + picture block */
+
+header.intro {
+  /* Two columns rather than a float, so the portrait can sit on the
+     baseline of the bio instead of hanging from the top. */
+  display: flex;
+  align-items: flex-end;
+  gap: 30px;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.intro-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.intro-text p {
+  margin: 0 0 12px;
+  color: var(--body);
+  font-size: 0.97rem;
+}
+
+.intro-text p.bio {
+  text-align: left;
+  margin-bottom: 14px;
+}
+
+.intro-text p.bio:last-of-type { margin-bottom: 20px; }
+
+/* The research statement is set in the sans face so it reads as a
+   standalone summary rather than another paragraph of the bio. */
+.intro-text p.bio-focus {
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+.intro-contact {
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+/* The portrait sits at the right, its lower edge level with the end of the
+   bio. --photo-lift raises it off that edge (e.g. to clear the social row). */
+.intro-photo {
+  order: 2;
+  flex: 0 0 auto;
+  margin: 0 0 var(--photo-lift, 72px);
+}
+
+header h1 {
+  font-size: 1.85rem;
+  margin: 0 0 14px;
+  line-height: 1.2;
+}
+
+/* ------------------------------------------------------- social icon links */
+
+.social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  clear: left;
+}
+
+.social a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--ink-soft);
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.social a:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  text-decoration: none;
+}
+
+.social svg { width: 14px; height: 14px; }
+.social i { font-size: 14px; line-height: 1; }
+
+/* ------------------------------------------------------------------- avatar */
+
+.image {
+  display: inline-block;
+  position: relative;
+}
+
+.image.avatar {
+  border-radius: 0;
+  line-height: 0;
+}
+
+.image.avatar img {
+  display: block;
+  width: 250px;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 3px;
+  border: 1px solid var(--rule);
+}
+
+/* ------------------------------------------------------- section headings */
+
+section > h1 {
+  margin: 40px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--ink);
+  font-size: 1.5rem;
+}
+
+section > h1:first-of-type { margin-top: 6px; }
+
+/* --------------------------------------------------------------- entries */
+
+section ul {
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 0;
+}
+
+section li {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+section li + li { margin-top: 20px; }
+
+/* Plain lists get a small terracotta marker. */
+section ul:not(:has(papertitle)) li {
+  position: relative;
+  padding-left: 18px;
+}
+
+section ul:not(:has(papertitle)) li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.68em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+section ul:not(:has(papertitle)) li + li { margin-top: 10px; }
+
+/* ---------------------------------------------------------------- news */
+
+section ul.news li {
+  display: block;
+  padding-left: 6.3rem;
+  text-indent: -6.3rem;
+  font-size: 0.94rem;
+  color: var(--body);
+}
+
+section ul.news li::before { display: none; }
+
+section ul.news li + li { margin-top: 8px; }
+
+.news-date {
+  display: inline-block;
+  width: 5.6rem;
+  margin-right: 0.7rem;
+  text-indent: 0;
+  font-weight: 700;
+  font-variant-numeric: lining-nums;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+section ul.news em {
+  font-style: italic;
+  color: var(--ink);
+}
+
+/* Logo used in place of an emoji at the end of a news line. */
+.news-logo {
+  width: auto;
+  height: 1em;
+  vertical-align: -0.14em;
+  image-rendering: pixelated;
+}
+
+/* Nested list, e.g. the reviewed conferences under Professional Service. */
+
+section ul.sublist {
+  margin: 6px 0 0;
+  padding: 0;
+}
+
+section ul.sublist li {
+  font-size: 0.92rem;
+  padding-left: 16px;
+}
+
+section ul.sublist li::before {
+  top: 0.62em;
+  width: 4px;
+  height: 4px;
+  background: var(--ink-faint);
+}
+
+section ul.sublist li + li { margin-top: 4px; }
+
+/* ----------------------------------------- hand-drawn research scenes */
+
+/* One crayon scene per theme: an agent and the objects it works over. They
+   sit still while you read and only play when you point at one. */
+.doodle {
+  flex: 0 0 216px;
+  width: 216px;
+  height: auto;
+  display: block;
+  background: none;
+}
+
+/* On a dark page the charcoal outline would vanish, so flip the art to chalk
+   and spin the hue back round to keep the colours roughly themselves. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .doodle { filter: invert(1) hue-rotate(180deg); }
+}
+
+:root[data-theme="dark"]  .doodle { filter: invert(1) hue-rotate(180deg); }
+:root[data-theme="light"] .doodle { filter: none; }
+
+@media screen and (max-width: 620px) {
+  .doodle {
+    width: 180px;
+    margin: 0 auto 8px;
+  }
+}
+
+/* Each theme is a row: the scene on the left, the claim beside it. */
+section ul.interests li {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-left: 0;
+}
+
+section ul.interests li::before { display: none; }
+
+.interest-body { flex: 1 1 auto; min-width: 0; }
+
+@media screen and (max-width: 620px) {
+  section ul.interests li {
+    display: block;
+  }
+}
+
+/* A hand-drawn spine down the left of the three themes: the arc of the work
+   runs top to bottom, from the digital world into the physical one. */
+.interests-flow {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.interests-rail {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.interests-rail .rail-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.interests-rail .rail-line {
+  flex: 1 1 auto;
+  width: 14px;
+  min-height: 60px;
+}
+
+.interests-rail .rail-head {
+  width: 22px;
+  height: 16px;
+  overflow: visible;
+}
+
+/* coloured pencil: a doubled, slightly offset stroke that drifts from the
+   blue end of the palette at the top to the green end at the bottom */
+.interests-rail .rail-stroke,
+.interests-rail .rail-head path {
+  fill: none;
+  stroke: url(#railgrad);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.interests-rail .rail-stroke { stroke-dasharray: 9 8; }
+.interests-rail .rail-head path { stroke: #5c9578; }
+.interests-rail .rail-ghost { opacity: 0.45; stroke-width: 1.6; }
+
+.rail-label {
+  font-family: 'Patrick Hand', var(--sans);
+  font-size: 1rem;
+  -webkit-text-stroke: 0.4px currentColor;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  filter: url(#pencil);
+}
+
+.rail-digital  { color: #6f9fd8; }
+.rail-physical { color: #5c9578; }
+
+.interests-flow > ul.interests { flex: 1 1 auto; margin-bottom: 22px; }
+
+@media screen and (max-width: 620px) {
+  .interests-flow { gap: 4px; }
+  .rail-label { font-size: 0.85rem; }
+}
+
+/* ------------------------------------------------- research-interest themes */
+
+section ul.interests li + li { margin-top: 6px; }
+
+section ul.interests strong {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+section ul.interests .tags { margin-top: 8px; }
+
+/* ---------------------------------------------------------------- blog */
+
+.blog-intro {
+  margin: 0 0 18px;
+  color: var(--ink-soft);
+}
+
+.blog-empty {
+  margin: 0;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+section ul.posts { margin: 0; padding: 0; list-style: none; }
+section ul.posts li { padding-left: 0; }
+section ul.posts li::before { display: none; }
+section ul.posts li + li {
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid var(--rule);
+}
+
+.post-meta {
+  margin: 0 0 4px;
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+}
+
+.post-title {
+  display: inline-block;
+  font-size: 1.08rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.post-title:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.post-blurb { margin: 6px 0 0; }
+
+/* -------------------------------------------------- publication entries */
+
+section ul:has(papertitle) li {
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+}
+
+section ul:has(papertitle) li + li {
+  margin-top: 26px;
+}
+
+.pub-thumb {
+  flex: 0 0 190px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 190px;
+  height: 116px;
+  padding: 5px;
+  overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+}
+
+.pub-thumb img,
+.pub-thumb video {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.pub-thumb:hover { border-color: var(--accent); }
+
+/* Papers with no teaser fall back to a plain plate carrying the venue. */
+.pub-thumb--plate {
+  background: var(--sage);
+  cursor: default;
+}
+
+.pub-thumb--plate em {
+  font-style: normal;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  color: var(--ink-faint);
+}
+
+.pub-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* keeps a trailing author (or "(Oral)") from being stranded alone on a line */
+  text-wrap: pretty;
+}
+
+/* Category headings that mirror the grouping used in the CV. */
+.pub-group-head {
+  margin: 30px 0 18px;
+  padding: 10px 14px;
+  background: var(--sage);
+  border-left: 3px solid var(--sage-light);
+  border-radius: 3px;
+}
+
+.pub-group-head:first-of-type { margin-top: 8px; }
+
+.pub-group {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--sage-light);
+  /* Charter ships only regular + bold, so nudge past bold with a hairline stroke. */
+  font-weight: 700;
+  -webkit-text-stroke: 0.35px currentColor;
+}
+
+/* Sans face so this reads as a label, not a faint echo of the serif heading. */
+.pub-group-sub {
+  /* slight indent so it sits visually nested under the heading */
+  margin: 4px 0 0 24px;
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--sage-light);
+}
+
+/* Opening line under the Publications heading, mirroring the CV. */
+.pub-intro {
+  margin: 0 0 10px;
+  color: var(--body);
+  font-size: 0.97rem;
+}
+
+/* The three jump links echo the green of the group headings they point to. */
+.pub-intro a {
+  color: var(--sage-light);
+  font-weight: 700;
+}
+
+.pub-intro a:hover {
+  color: var(--ink);
+}
+
+/* Footnote under the one entry it applies to. */
+.pub-note {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+}
+
+/* My own name in an author list. */
+.pub-body strong.me {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+/* ------------------------------------------------------------------- tags */
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.tags a {
+  color: inherit;
+}
+
+.tags a:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.tags span {
+  padding: 1px 9px;
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--ink-soft);
+  background: var(--sage);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------- experience entries */
+
+.org-logo {
+  width: auto;
+  height: 1.1em;
+  margin-right: 6px;
+  vertical-align: -0.18em;
+}
+
+.org-link {
+  color: inherit;
+}
+
+.org-link:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+section .meta,
+section li > p[style] {
+  float: right;
+  margin: 2px 0 0 16px;
+  padding: 0;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------ cat portraits */
+
+.cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 18px 0 0;
+}
+
+.cats figure {
+  margin: 0;
+}
+
+.cats img {
+  display: block;
+  width: 190px;
+  height: 240px;
+  object-fit: cover;
+  border-radius: 3px;
+  border: 1px solid var(--rule);
+}
+
+.cats figcaption {
+  margin-top: 6px;
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+}
+
+/* ---------------------------------------------------------------- colophon */
+
+.credit {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  font-style: normal;
+}
+
+.colophon {
+  margin: 24px 0 0;      /* margin-top:auto pins it to the bottom */
+  margin-top: auto;
+  padding-top: 24px;
+  text-align: center;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--ink-faint);
+}
+
+/* ------------------------------------------------------- code, tables, misc */
+
+code, pre {
+  font-family: ui-monospace, Monaco, "Cascadia Code", "Liberation Mono", Consolas, monospace;
+  color: var(--ink);
+}
+
+pre {
+  max-width: 100%;
+  padding: 12px 16px;
+  background: var(--sage);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--rule);
+}
+
+th, dt {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.biblink { text-decoration: none; display: inline; margin-right: 0; }
+.fakelink { text-decoration: none; cursor: pointer; }
+
+.bibref {
+  font-size: 0.72rem;
+  margin-top: 10px;
+  display: none;
+  font-family: ui-monospace, Monaco, Consolas, monospace;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ------------------------------------------------------------- responsive */
+
+@media screen and (max-width: 760px) {
+  body { padding: 32px 22px; }
+
+  header.intro {
+    display: block;
+  }
+
+  .intro-photo {
+    display: block;
+    margin: 0 0 18px;
+  }
+
+  header h1 { font-size: 1.55rem; }
+
+  .image.avatar img { width: 184px; height: 184px; }
+}
+
+@media screen and (max-width: 520px) {
+  body { padding: 22px 16px; }
+
+  section > h1 { font-size: 1.34rem; }
+  papertitle { font-size: 1.02rem; }
+
+  section ul:has(papertitle) li {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pub-thumb {
+    flex-basis: auto;
+    width: 100%;
+    height: 140px;
+  }
+
+  section ul.news li {
+    padding-left: 0;
+    text-indent: 0;
+  }
+
+  .news-date {
+    display: block;
+    width: auto;
+    margin: 0 0 2px;
+  }
+
+  section .meta,
+  section li > p[style] {
+    float: none;
+    display: block;
+    margin: 0 0 4px;
+  }
+
+}
+
+@media print {
+  body {
+    padding: 0.4in;
+    font-size: 11pt;
+    color: #222;
+    background: #fff;
+  }
+
+  footer { display: none; }
+
+  a { color: #222; }
+}

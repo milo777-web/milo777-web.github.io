@@ -1,0 +1,10 @@
+url: "https://romyluo.com"
+plugins:
+  - jekyll-sitemap
+
+# FlipTest blog is hidden until launch: keep it out of the sitemap
+defaults:
+  - scope:
+      path: "blog/fliptest"
+    values:
+      sitemap: false
