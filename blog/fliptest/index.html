@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Flip Test: Video World Models Fail to Learn the World State</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="FlipTest asks whether video world models change their prediction when a small change to the first frame flips the physical outcome.">
+<meta property="og:title" content="The Flip Test: Video World Models Fail to Learn the World State">
+<meta property="og:description" content="Two nearly identical first frames, two opposite futures. We test whether 11 video world models notice the difference.">
+<meta property="og:image" content="https://romyluo.com/blog/fliptest/assets/fig/blog/fig1-teaser.png">
+<link rel="icon" href="assets/fig/fliptest-mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+@font-face { font-family: "Google Sans"; src: url("assets/fonts/GoogleSans-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Google Sans"; src: url("assets/fonts/GoogleSans-Medium.ttf") format("truetype"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Google Sans"; src: url("assets/fonts/GoogleSans-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+
+/* Layout: distill-style reading column (≈680px) with wider figure column (≈1000px) and a sticky
+   table of contents in the left margin on wide screens. Palette taken from the paper's figures. */
+:root {
+  --paper: #FFFFFF;        /* page: pure white */
+  --panel: #F3F1F8;        /* callouts, code */
+  --figbg: #FFFFFF;        /* figures are drawn on white */
+  --rule:  #E2DFEA;
+  --ink:   #2F3350;        /* text */
+  --muted: #6E6A86;
+  --blue:  #4A6FAE;        /* "the future" / state */
+  --teal:  #2E8F8E;        /* "the prediction" / correct */
+  --red:   #B5504A;        /* the physical boundary / wrong */
+  --grey:  #8A86A0;        /* unclear */
+  --link:  #3F64A6;
+  --chip-ok-bg: #E2F1F0; --chip-bad-bg: #F6E4E2; --chip-unc-bg: #ECEAF1;
+  --hl-bg: #D5E6F3;         /* light blue-green text highlight */
+  --head: #3F64A6;          /* section titles (same as --link) */
+
+  --font-display: "Google Sans", "Product Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Google Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --col: 880px;
+  --wide: 1000px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #17182A; --panel: #22243A; --figbg: #FFFFFF; --rule: #34364F;
+    --ink: #E6E5F0; --muted: #A4A1BA; --blue: #8EA9DC; --teal: #5CC1BF; --red: #E08A83; --grey: #A19DB6;
+    --link: #9DB6E6; --chip-ok-bg: #1D3A3B; --chip-bad-bg: #42292A; --chip-unc-bg: #2D2E44; --hl-bg: #1D3A52;
+    --head: #9DB6E6;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #17182A; --panel: #22243A; --figbg: #FFFFFF; --rule: #34364F;
+  --ink: #E6E5F0; --muted: #A4A1BA; --blue: #8EA9DC; --teal: #5CC1BF; --red: #E08A83; --grey: #A19DB6;
+  --link: #9DB6E6; --chip-ok-bg: #1D3A3B; --chip-bad-bg: #42292A; --chip-unc-bg: #2D2E44; --hl-bg: #1D3A52;
+  --head: #9DB6E6;
+}
+mark.hl { background: var(--hl-bg); color: inherit; padding: 1px 3px; border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+
+* { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 400 16px/1.625 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--link); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 3px; }
+img, video { max-width: 100%; display: block; }
+
+/* ---------- nav ---------- */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--paper); }
+.nav {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  backdrop-filter: blur(8px); border-bottom: 1px solid var(--rule);
+}
+.nav-in {
+  max-width: var(--wide); margin: 0 auto; display: flex; align-items: center; gap: 24px; height: 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.brand { display: flex; align-items: center; gap: 10px; font: 700 18px/1 var(--font-display); color: var(--ink); text-decoration: none; }
+.brand img { width: 28px; height: 28px; }
+.nav-links { margin-left: auto; display: flex; gap: 20px; font-size: 15px; }
+.nav-links a { color: var(--muted); text-decoration: none; }
+.nav-links a:hover { color: var(--ink); }
+#progress { position: absolute; left: 0; bottom: -1px; height: 2px; width: 0; background: var(--teal); }
+
+/* ---------- page grid ---------- */
+.page {
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 80px;
+}
+.col { max-width: var(--col); margin-inline: auto; }
+.wide { max-width: var(--wide); margin-inline: auto; }
+
+/* ---------- title + byline ---------- */
+.title { padding-block: 56px 4px; }
+.meta { color: var(--muted); font-size: 15px; padding-bottom: 20px; }
+.meta p { margin: 0 0 2px; }
+.meta .authors { color: var(--ink); margin-bottom: 6px; font-size: 16px; }
+.meta .authors a { color: var(--link); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.meta .authors a:hover { text-decoration-thickness: 2px; }
+.au { white-space: nowrap; }
+.meta .affs { display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: center; margin-bottom: 6px; }
+.meta .affs span { display: inline-flex; align-items: center; gap: 5px; }
+.meta .affs img { height: 18px; width: auto; }
+ul.levels { list-style: none; padding-left: 0; display: grid; gap: 10px; }
+ul.levels li { display: flex; align-items: center; gap: 14px; }
+ul.levels .lv { width: 68px; height: auto; flex: none; }
+.meta sup b { font-size: 1.35em; line-height: 0; }
+.meta-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; }
+.meta-left { flex: 1 1 360px; min-width: 0; }
+.meta .res { display: flex; align-items: flex-start; gap: 14px; flex: none; }
+.meta .res a { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--ink); text-decoration: none; }
+.meta .res .lab { font: 12.5px/1.2 var(--font-mono); text-decoration: underline dotted 1px; text-underline-offset: 3px; }
+.meta .res img { height: 50px; width: auto; border: 1px solid var(--rule); border-radius: 4px; background: #fff; }
+.meta .res a[href]:hover img { transform: scale(1.015); }
+.meta .res img { transition: transform .3s; }
+.meta .res .note { font-size: 11px; line-height: 1.2; color: var(--muted); }
+.meta sup { font-size: 0.7em; }
+.title h1 {
+  font: 700 clamp(20px, calc((100vw - 40px) / 31), 28px)/1.15 var(--font-display); letter-spacing: -0.015em;
+  margin: 0 0 18px; white-space: nowrap;
+}
+@media (max-width: 720px) { .title h1 { font-size: 26px; white-space: normal; text-wrap: balance; } }
+.title h1 .q { color: var(--muted); font-weight: 500; display: block; }
+.title p.lede { font-size: 18px; line-height: 1.55; color: var(--muted); margin: 0; text-wrap: pretty; }
+.byline {
+  border-block: 1px solid var(--rule); padding-block: 18px; margin-bottom: 32px;
+  display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 16px 28px; font-size: 15px;
+}
+.byline h3 { font: 500 11.5px/1.4 var(--font-display); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 4px; }
+.byline p { margin: 0; line-height: 1.5; }
+.links { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px;
+  border: 1px solid var(--rule); color: var(--ink); text-decoration: none; font-size: 14px; background: var(--paper);
+}
+.btn:hover { border-color: var(--ink); }
+.btn.soon { color: var(--muted); }
+.btn.soon span { font-size: 11.5px; letter-spacing: 0.04em; }
+
+/* ---------- article ---------- */
+.with-toc { position: relative; }
+/* contents rail: sticky in the left margin on wide screens, hidden below 1280px */
+.toc { display: none; }
+@media (min-width: 1280px) {
+  .toc { display: block; position: absolute; inset-block: 0; right: calc(50% + var(--col) / 2 + 32px);
+         width: min(200px, calc(50% - var(--col) / 2 - 32px)); transition: opacity .25s, visibility .25s; }
+  .toc-in { position: sticky; top: 40px; max-height: calc(100vh - 80px); overflow-y: auto; }
+  .toc-h { margin: 0 0 10px; font: 700 11.5px/1 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .toc ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--rule); }
+  .toc a { display: block; margin-left: -1px; padding: 4px 0 4px 12px; border-left: 2px solid transparent;
+           font: 500 13px/1.35 var(--font-display); color: var(--muted); text-decoration: none; text-wrap: pretty; }
+  .toc li.sub a { padding-left: 24px; font-size: 12.5px; font-weight: 400; }
+  .toc li.sub a.has-lv { display: flex; align-items: center; gap: 7px; padding-left: 14px; }
+  .toc a .toclv { width: 26px; height: auto; flex: none; border-radius: 3px; }
+  .toc a:hover { color: var(--ink); }
+  .toc a.on { color: var(--ink); border-left-color: var(--teal); }
+  .toc a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+}
+/* the example gallery is wider than the text column: below 1520px the rail would overlap it, so it steps aside */
+@media (min-width: 1280px) and (max-width: 1519.98px) { .toc.off { opacity: 0; visibility: hidden; } }
+@media (min-width: 1520px) { .toc { right: calc(50% + var(--wide) / 2 + 24px); width: min(200px, calc(50% - var(--wide) / 2 - 24px)); } }
+/* the rail only fills the left margin, so nudge the whole page right by a quarter of (rail + its gap):
+   halfway between text-centred and rail+text-centred, so it leans neither left nor right */
+@media (min-width: 1280px) { .page { position: relative; left: calc((min(200px, 50vw - var(--col) / 2 - 40px) + 32px) / 4); } }
+@media (min-width: 1520px) { .page { left: calc((min(200px, 50vw - var(--wide) / 2 - 40px) + 24px + (var(--wide) - var(--col)) / 2) / 4); } }
+article h2 {
+  font: 700 28px/1.25 var(--font-display); color: var(--head); letter-spacing: -0.01em; margin: 40px 0 12px; text-wrap: balance;
+  display: flex; align-items: center; gap: 12px;
+}
+article h3 { font: 700 21px/1.3 var(--font-display); color: var(--head); margin: 40px 0 10px; text-wrap: balance; display: flex; align-items: center; gap: 10px; }
+article h3 img.h3lv { width: 44px; height: auto; flex: none; border-radius: 4px; }
+article h2 img, article h3 img, .lvl img { height: 1.05em; width: auto; flex: none; }
+/* markdown-style "#" before every section and subsection title (CSS only, so the contents rail text stays clean) */
+.col b.qa { color: var(--head); }
+article h2::before, article h3::before { content: "#"; flex: none; color: var(--head); opacity: 0.45; font-weight: 600; margin-right: -4px; }
+article p { margin: 0 0 14px; text-wrap: pretty; }
+article ul, article ol { padding-left: 22px; margin: 0 0 18px; }
+article li { margin-bottom: 6px; }
+.num { font-variant-numeric: tabular-nums; }
+.eyebrow { font: 500 12px/1 var(--font-display); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 0 0 14px; }
+
+.note { font-style: italic; color: var(--muted); }
+.tldr { margin-bottom: 8px; }
+.tldr h2 { margin-top: 0; }
+.tldr .hook { font: 600 clamp(18px, 2.2vw, 21px)/1.4 var(--font-display); text-wrap: balance; margin: 0 0 18px; }
+.tldr .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 0 0 18px; }
+.tldr .stat { background: var(--paper); border-radius: 8px; padding: 12px 12px 10px; display: flex; flex-direction: column; gap: 4px; }
+.tldr .stat b { font: 700 clamp(22px, 3vw, 28px)/1 var(--font-display); }
+.tldr .stat span { font-size: 12.5px; line-height: 1.35; color: var(--muted); }
+.tldr .stat.bad b { color: var(--red); } .tldr .stat.good b { color: var(--teal); } .tldr .stat.ref b { color: var(--grey); }
+@media (max-width: 640px) { .tldr .stats { grid-template-columns: repeat(2, 1fr); } }
+
+.criterion {
+  margin: 28px 0; padding: 26px 8px; text-align: center; border-block: 1px dashed var(--red);
+  font: 500 clamp(18px, 2.3vw, 22px)/1.45 var(--font-display); text-wrap: balance;
+}
+.criterion .f { color: var(--blue); } .criterion .p { color: var(--teal); }
+
+.levels { display: grid; gap: 12px; margin: 8px 0 22px; padding: 0; list-style: none; }
+.levels li { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: start; margin: 0; }
+.levels img { width: 44px; height: auto; margin-top: 5px; border-radius: 4px; }
+.levels b { font-family: var(--font-display); }
+
+/* figures */
+figure { margin: 24px auto; }
+figure .frame { background: var(--figbg); border: 1px solid var(--rule); border-radius: 10px; padding: 14px; cursor: zoom-in; }
+figure .frame img { width: 100%; height: auto; }
+figcaption { max-width: var(--col); margin: 12px auto 0; font-size: 14px; line-height: 1.55; color: var(--muted); }
+figcaption b { color: var(--ink); font-weight: 500; }
+
+/* details */
+details { border: 1px solid var(--rule); border-radius: 10px; padding: 0 18px; margin: 0 0 18px; }
+details[open] { padding-bottom: 6px; }
+summary { cursor: pointer; padding: 12px 0; font-weight: 500; font-family: var(--font-display); }
+summary::marker { color: var(--muted); }
+.term { font-family: var(--font-mono); font-size: 0.92em; letter-spacing: -0.01em; }
+code.prompt { font-family: var(--font-mono); font-size: 0.86em; background: var(--panel); color: var(--ink);
+  padding: 1px 5px; border-radius: 4px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.math { font-family: var(--font-mono); font-size: 15px; background: var(--panel); padding: 1px 6px; border-radius: 4px; overflow-wrap: anywhere; }
+.mathblock { font-family: var(--font-mono); font-size: 15px; background: var(--panel); padding: 12px 16px; border-radius: 8px; overflow-x: auto; margin: 0 0 16px; }
+
+/* stat row: three headline numbers for the pair benchmark */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 22px 0 26px; }
+.stat { border-top: 2px solid var(--ink); padding-top: 10px; }
+.stat .v { font: 700 30px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.stat .v small { font-size: 18px; font-weight: 500; }
+.stat .k { font-size: 13.5px; line-height: 1.45; color: var(--muted); margin-top: 6px; }
+.stat.vlm { border-top-color: var(--teal); } .stat.vlm .v { color: var(--teal); }
+
+/* ---------- gallery ---------- */
+.gallery { margin: 30px auto 40px; }
+.g-tabs { display: grid; grid-template-columns: repeat(3, max-content); gap: 8px; margin-bottom: 14px; }
+@media (max-width: 560px) { .g-tabs { grid-template-columns: 1fr 1fr; } .g-tab { justify-content: space-between; } }
+.g-tab {
+  font: 500 14px/1 var(--font-display); color: var(--ink); background: var(--paper);
+  border: 1px solid var(--rule); border-radius: 999px; padding: 8px 14px; cursor: pointer; display: inline-flex; gap: 8px; align-items: center;
+}
+.g-tab .sp { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.g-tab[aria-selected="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.g-tab[aria-selected="true"] .sp { color: inherit; opacity: 0.7; }
+.g-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; margin-bottom: 14px; }
+.g-head p { margin: 0; color: var(--muted); font-size: 15px; max-width: 70ch; }
+.g-tools { display: flex; gap: 8px; }
+.g-tools button { font: 500 13px/1 var(--font-display); color: var(--ink); background: transparent; border: 1px solid var(--rule); border-radius: 6px; padding: 7px 10px; cursor: pointer; }
+.g-tools button:hover { border-color: var(--ink); }
+.g-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; }
+.g-btitle { font: 600 14px/1.3 var(--font-display); display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin-bottom: 5px; }
+.g-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.g-cell { position: relative; }
+.g-cell img, .g-cell video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 5px; background: var(--panel); display: block; }
+.g-cell .chip { position: absolute; left: 5px; bottom: 5px; font-size: 11px; padding: 3px 6px; }
+.g-block.solo { grid-column: 1 / -1; justify-self: center; width: calc((100% - 20px) / 2); }
+.g-block.solo .g-btitle { justify-content: center; }
+.g-sep { grid-column: 1 / -1; border-top: 1px solid var(--rule); margin: 4px 0; }
+.chip {
+  display: inline-flex; align-items: center; gap: 5px; font: 500 12.5px/1 var(--font-display);
+  padding: 5px 8px; border-radius: 999px; background: var(--chip-unc-bg); color: var(--ink); white-space: nowrap;
+}
+.chip.ok { background: var(--chip-ok-bg); color: var(--teal); }
+.chip.bad { background: var(--chip-bad-bg); color: var(--red); }
+.chip.gt { background: var(--figbg); color: #2F3350; box-shadow: 0 0 0 1px rgba(47,51,80,.18); }
+.g-cell .chip.ok, .g-cell .chip.bad, .g-cell .chip.unc { background: rgba(255,255,255,.94); }
+.g-cell .chip.ok { color: #1F6E6D; } .g-cell .chip.bad { color: #B5504A; } .g-cell .chip.unc { color: #5C5875; }
+.verdict { font: 500 12.5px/1.3 var(--font-display); color: var(--muted); }
+.verdict.ok { color: var(--teal); } .verdict.bad { color: var(--red); }
+.g-legend { font-size: 13.5px; color: var(--muted); margin-top: 14px; }
+@media (max-width: 640px) { .g-grid { grid-template-columns: 1fr; } .g-block.solo { width: 100%; } }
+}
+
+/* code / bibtex */
+.bibbox { position: relative; border: 1px solid var(--rule); border-radius: 10px; background: var(--panel); margin: 0 0 16px; }
+pre.bib {
+  font: 400 12px/1.5 var(--font-mono); padding: 12px 14px; padding-right: 120px; margin: 0; color: var(--ink);
+  white-space: pre-wrap; overflow-wrap: anywhere; max-height: 190px; overflow-y: auto;
+}
+.bibbox .copy { position: absolute; top: 8px; right: 8px; background: var(--paper); font-size: 12px; padding: 5px 8px; }
+.copy { font: 500 13px/1 var(--font-display); color: var(--ink); background: transparent; border: 1px solid var(--rule); border-radius: 6px; padding: 7px 10px; cursor: pointer; }
+.refs { font-size: 14.5px; line-height: 1.55; color: var(--muted); padding-left: 24px; }
+.refs li { margin-bottom: 8px; }
+sup.c a { text-decoration: none; font-size: 12px; }
+footer { border-top: 1px solid var(--rule); margin-top: 56px; padding-top: 18px; font-size: 13.5px; color: var(--muted); }
+
+
+/* blog figures: narrow images stacked in one frame, each shown at the scale it was drawn for
+   (3.6 in = the inner width of the reading column), so type size matches across figures */
+figure.blog { max-width: var(--col); }
+figure.blog .frame .row { display: flex; gap: 20px; width: 100%; align-items: flex-start; }
+figure.blog .frame .row.short { max-width: 640px; }
+figure.blog .frame .row img { width: 0; min-width: 0; height: auto; }
+@media (max-width: 640px) { figure.blog .frame .row { flex-direction: column; gap: 12px; } figure.blog .frame .row img { width: 100%; } }
+
+figure.blog .frame.stack { cursor: default; }
+figure.blog .frame.stack img { cursor: zoom-in; }
+figure.blog .frame.stack { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+figure.blog .frame img.fit { max-width: 100%; height: auto; }
+figure.blog .frame hr { width: 100%; border: 0; border-top: 1px solid #ECEAF1; margin: 0; }
+/* fig 7 top: de-animation pipeline as a grid; the figure frame is always white, so colours are fixed */
+.pipe-wrap { align-self: stretch; overflow-x: auto; }
+.pipe { display: grid; grid-template-columns: 112px repeat(4, minmax(100px, 1fr)); gap: 7px; min-width: 540px;
+  font-size: 12.5px; line-height: 1.3; color: #2F3350; }
+.pipe .hd { text-align: center; padding: 3px 4px; border: 1px solid #DCD8E6; border-radius: 8px; background: #FAF9FC; }
+.pipe .hd b { display: block; font-weight: 500; font-size: 13.5px; }
+.pipe .hd span { color: #76738F; font-size: 11.5px; }
+.pipe .rl { display: flex; flex-direction: column; justify-content: center; padding-right: 4px; }
+.pipe .rl b { font-weight: 500; font-size: 13px; }
+.pipe .rl span { color: #76738F; font-size: 11.5px; }
+.pipe .c { display: flex; align-items: center; justify-content: center; text-align: center; min-height: 34px;
+  padding: 4px 8px; border-radius: 8px; position: relative; }
+/* animation: a pulse walks each row left to right, lighting the stages that row actually runs */
+.pipe .c:not(.sk) { animation: pipeflow 5s infinite both; animation-delay: calc(var(--d, 0) * 0.55s + var(--r, 0) * 0.12s); }
+@keyframes pipeflow {
+  0%, 4% { box-shadow: 0 0 0 0 rgba(47,51,80,0); transform: none; }
+  9% { box-shadow: 0 0 0 3px rgba(91,84,144,.45); transform: translateY(-1px); }
+  20%, 100% { box-shadow: 0 0 0 0 rgba(47,51,80,0); transform: none; }
+}
+.pipe .sk { opacity: .55; }
+@media (prefers-reduced-motion: reduce) { .pipe .c { animation: none !important; } }
+.pipe .ex { background: #75C9C8; color: #12403F; font-weight: 500; }
+.pipe .im { background: #EEEBF6; border: 1.5px dashed #B3ABD3; color: #4B4772; }
+.pipe .sk { border: 1.5px dashed #E1DEE8; color: #A9A5BB; }
+.pipe .ro { border: 1.5px solid #2F3350; background: #fff; }
+.pipe-key { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; color: #5D5A78; align-self: stretch; }
+.pipe-key i { display: inline-block; width: 18px; height: 11px; border-radius: 3px; vertical-align: -1px; margin-right: 6px;
+  box-sizing: border-box; }
+
+/* lightbox */
+#lb { position: fixed; inset: 0; z-index: 50; background: rgba(20,21,36,.86); display: flex; align-items: center; justify-content: center; padding: 24px; cursor: zoom-out; }
+#lb img { max-height: 100%; width: auto; background: #fff; border-radius: 8px; padding: 12px; }
+
+@media (max-width: 640px) {
+  body { font-size: 16.5px; }
+  .byline { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: 1fr; }
+  .nav-links { gap: 14px; font-size: 14px; }
+  .nav-links .hide-sm { display: none; }
+  figure .frame { padding: 6px; }
+}
+.f1 { position: relative; width: 600px; max-width: 100%; margin: 0 auto; }
+.f1 img { display: block; width: 100%; height: auto; cursor: default; }
+.f1 .sz { visibility: hidden; }
+.f1 .L, .f1 .fut { position: absolute; inset: 0; }
+.f1 .fut video { position: absolute; left: 63.357%; width: 35.143%; object-fit: cover; background: #ddd; }
+.f1 .fut .L { z-index: 1; }
+.f1 .pres { clip-path: inset(0 62.714% 0 0); }
+.f1 .arr1 { clip-path: inset(0 62.714% 0 37.286%); transition: clip-path .6s ease-out; }
+.f1 .box { clip-path: inset(0 42.286% 0 42.143%); opacity: 0; transition: opacity .45s; }
+.f1 .arr2 { clip-path: inset(0 42.286% 0 57.714%); transition: clip-path .5s ease-out; }
+.f1 .fut { clip-path: inset(0 0 0 62.286%); opacity: 0; transition: opacity .5s; }
+.f1.s1 .arr1 { clip-path: inset(0 57.857% 0 37.286%); }
+.f1.s2 .box { opacity: 1; }
+.f1.s3 .arr2 { clip-path: inset(0 37.714% 0 57.714%); }
+.f1.s4 .fut { opacity: 1; }
+.f1.reset * { transition: none !important; }
+.bibcard { cursor: copy; }
+.bibthumb { display: block; height: 50px; width: 74px; overflow: hidden; padding: 4px 5px; border: 1px solid var(--rule);
+  border-radius: 4px; background: #fff; color: #5D5A78; font: 6.4px/1.32 var(--font-mono); text-align: left; transition: transform .3s; }
+.bibcard:hover .bibthumb { transform: scale(1.015); }
+.citebox { display: flex; align-items: flex-start; gap: 16px; border: 1px solid var(--rule); border-radius: 10px;
+  background: var(--panel); padding: 12px 14px; margin: 0 0 16px; }
+.citebox .bibcard { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--ink); text-decoration: none; flex: none; }
+.citebox .lab { font: 12.5px/1.2 var(--font-mono); text-decoration: underline dotted 1px; text-underline-offset: 3px; }
+.citebox .note { font-size: 11px; line-height: 1.2; color: var(--muted); }
+.citebox pre.bib { padding: 0; flex: 1; min-width: 0; }
+@media (max-width: 520px) { .citebox { flex-direction: column; } }
+.fams { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
+.fam { border: 1px solid color-mix(in srgb, var(--fc) 70%, #2F3350); background: color-mix(in srgb, var(--fc) 14%, #fff);
+  border-radius: 9px; padding: 7px 8px 6px; display: flex; flex-direction: column; gap: 6px; }
+.fam h4 { margin: 0; font: 600 13.5px/1.2 var(--font-display); color: color-mix(in srgb, var(--fc) 45%, #1B1D30); }
+.fam .exh { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; color: #2F3350; margin-bottom: 3px; }
+.fam .exh b { font-weight: 500; }
+.fam .exh span { color: #76738F; font-size: 10.5px; }
+.fam .pr { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.fam .clip { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.fam video { width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: 4px; background: #E6E3EA; display: block; }
+.fam .clip span { font-size: 11px; color: #76738F; }
+.fams.seq .fam { opacity: .12; transform: translateY(6px); transition: opacity .6s, transform .6s; }
+.fams.seq .fam.on { opacity: 1; transform: none; }
+@media (max-width: 760px) { .fams { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .fams { grid-template-columns: 1fr; } }
+.res .bibcard .note, .citebox .bibcard .note {
+  font: 500 11px/1 var(--font-display); color: #2F3350; padding: 5px 8px 4px; border-radius: 6px;
+  border: 1px solid #C9C5D8; background: linear-gradient(#FFFFFF, #ECEAF3);
+  box-shadow: 0 2px 0 #B9B4CC, 0 3px 4px rgba(47, 51, 80, .18); transition: transform .08s, box-shadow .08s; }
+.res .bibcard:hover .note, .citebox .bibcard:hover .note { background: linear-gradient(#FFFFFF, #E3E0EE); }
+.res .bibcard:active .note, .citebox .bibcard:active .note { transform: translateY(2px); box-shadow: 0 0 0 #B9B4CC, 0 1px 2px rgba(47, 51, 80, .18); }
+.bibcard:focus-visible .note { outline: 2px solid var(--link); outline-offset: 2px; }
+/* the one-sentence test, boxed */
+.col p.crit { border: 1.5px solid var(--ink); border-radius: 10px; padding: 14px 20px; margin: 4px 0 22px;
+  text-align: center; text-wrap: balance; font-size: 1.06em; }
+/* data table inside the text column */
+.col .tbl { overflow-x: auto; margin: 10px 0 4px; }
+.col .tbl table { width: 100%; border-collapse: collapse; font-size: 14.5px; font-variant-numeric: tabular-nums; }
+.col .tbl th, .col .tbl td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.col .tbl th:first-child, .col .tbl td:first-child { text-align: left; padding-left: 0; }
+.col .tbl thead th { font-weight: 600; font-size: 13px; color: var(--muted); }
+.col .tbl thead tr.grp th { border-bottom: none; padding-bottom: 0; text-align: center; }
+.col .tbl .sep { border-left: 1px solid var(--rule); }
+.col p.tcap { font-size: 14px; color: var(--muted); margin: 6px 0 22px; }
+/* "In short" summary at the end of each result */
+.col p.takeaway { background: var(--panel); border-radius: 10px; padding: 12px 18px; margin: 6px 0 20px; }
+</style>
+</head>
+<body>
+<div class="nav">
+  <div class="nav-in">
+    <a class="brand" href="/" title="Romy Luo's homepage">
+      <img src="/favicon/apple-touch-icon.png" alt="" width="28" height="28">Romy Luo</a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/#interests">Research</a>
+      <a href="/#publications">Publications</a>
+      <a href="/#experience" class="hide-sm">Experience</a>
+      <a href="/#service" class="hide-sm">Service</a>
+      <a href="/#blog">Blog</a>
+      <a href="/#personal" class="hide-sm">Personal</a>
+    </div>
+  </div>
+  <div id="progress"></div>
+</div>
+
+
+<main class="page" id="top">
+
+  <div class="col title">
+    <h1>The Flip Test: Video World Models Fail to Learn the World State</h1>
+  </div>
+
+  <div class="col meta">
+    <p class="authors"><span class="au"><a href="https://romyluo.com/" target="_blank" rel="noopener">Romy Mi Luo</a><sup>1,2<b>*</b></sup></span>, <span class="au"><a href="https://me.lj-y.com/" target="_blank" rel="noopener">Lijun Yu</a><sup>2<b>†</b></sup></span>, <span class="au"><a href="https://scholar.google.com/citations?user=-hW6cvgAAAAJ" target="_blank" rel="noopener">Adams Wei Yu</a><sup>2</sup></span>, <span class="au"><a href="https://scholar.google.com/citations?user=HtD-aVUAAAAJ" target="_blank" rel="noopener">Ang Cao</a><sup>2</sup></span>, <span class="au"><a href="https://scholar.google.com/citations?user=KzSKtNUAAAAJ" target="_blank" rel="noopener">Baochen Sun</a><sup>2</sup></span>, <span class="au"><a href="https://scholar.google.com/citations?user=2RKbmY0AAAAJ" target="_blank" rel="noopener">Nan Hua</a><sup>2</sup></span>, <span class="au"><a href="https://scholar.google.com/citations?user=rhZm_NAAAAAJ" target="_blank" rel="noopener">Yuan Hao</a><sup>2</sup></span>, <span class="au"><a href="https://scholar.google.com/citations?user=JSFmVQEAAAAJ" target="_blank" rel="noopener">Alex Dimakis</a><sup>3</sup></span>, <span class="au"><a href="https://scholar.google.com/citations?user=YMA322YAAAAJ" target="_blank" rel="noopener">Ya Xu</a><sup>2</sup></span>, <span class="au"><a href="https://scholar.google.com/citations?user=VuWl-KUAAAAJ" target="_blank" rel="noopener">Ed H. Chi</a><sup>2</sup></span>, <span class="au"><a href="https://scholar.google.com/citations?user=ScLUQ-YAAAAJ" target="_blank" rel="noopener">Xuezhi Wang</a><sup>2<b>†</b></sup></span>, <span class="au"><a href="https://scholar.google.com/citations?user=c7HKsEsAAAAJ" target="_blank" rel="noopener">Yinxiao Liu</a><sup>2<b>†</b></sup></span></p>
+    <div class="meta-row">
+      <div class="meta-left">
+      <p class="affs"><span><img src="assets/fig/aff-ut.png" alt="" width="50" height="64"><sup>1</sup>UT Austin</span><span><img src="assets/fig/aff-gdm.png" alt="" width="63" height="64"><sup>2</sup>Google DeepMind</span><span><img src="assets/fig/aff-berkeley.png" alt="" width="64" height="64"><sup>3</sup>UC Berkeley</span></p>
+      <p><sup><b>*</b></sup>Work done during internship at Google DeepMind &nbsp;<sup><b>†</b></sup>Project co-lead</p>
+      <p>November 2026 · 10 min read</p>
+      </div>
+      <div class="res" id="paper">
+        <a class="soon" aria-disabled="true" title="coming soon"><span class="lab">[Paper]</span><img src="assets/fig/card-paper.png" alt="First page of the paper" width="420" height="544"><span class="note">coming soon</span></a>
+        <a class="soon" aria-disabled="true" title="coming soon"><span class="lab">[Code]</span><img src="assets/fig/card-code.png" alt="Code repository preview" width="600" height="300"><span class="note">coming soon</span></a>
+        <a href="assets/video/fliptest.mp4" target="_blank" rel="noopener" title="Watch the walkthrough"><span class="lab">[Video]</span><img src="assets/fig/card-video-frame.jpg" alt="First frame of the video walkthrough: two rows of dominoes with a finger about to push the first one" width="640" height="360"><span class="note">2:56</span></a>
+        <a href="#citation" class="bibcard" title="Copy BibTeX"><span class="lab">[BibTeX]</span><span class="bibthumb">@article{fliptest2026,<br>&nbsp;title = {The Flip<br>&nbsp;Test: Video<br>&nbsp;World Models…</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="with-toc">
+  <nav class="toc" id="toc" aria-label="Contents"></nav>
+
+  <article>
+    <div class="col">
+      <section class="tldr" id="tldr">
+        <h2>TL;DR</h2>
+        <p>Video models<sup class="c"><a href="#r1">1</a>–<a href="#r3">3</a></sup> are widely used as world models for robotics<sup class="c"><a href="#r4">4</a></sup>, planning and autonomous driving<sup class="c"><a href="#r5">5</a></sup>. These models promise to imagine the future. You show a model a scene, and it predicts what happens next.</p>
+        <p>We test the idea that <b>models learn the state of the world</b>. When a small change in a scene changes the outcome, their predictions should change too. In the physical world, tiny differences decide outcomes. A block shifted 1 mm to the right falls off the table. Shifted 1 mm to the left, it stays. If a model understands the state of the world, <b>a small change that crosses a physical boundary should flip its prediction.</b></p>
+        <p>To test this, we built <b>FlipTest</b>, a benchmark of simulated and real-world tasks. Each task uses minimal pairs. These are two almost identical scenes on opposite sides of a physical tipping point, with opposite ground-truth outcomes.</p>
+      </section>
+    </div>
+
+    <figure class="blog">
+      <div class="frame stack"><div class="f1" id="f1"><img class="sz" src="assets/fig/blog/fig1-overlay.png" alt="Two nearly identical first frames of a book stack, one standing upright and one leaning on a prop, go into a world model; on the right, recordings of the opposite futures play: the upright stack stays, the leaning one collapses." width="1400" height="670"><img class="L pres" src="assets/fig/blog/fig1-overlay.png" alt="" aria-hidden="true" width="1400" height="670"><img class="L arr1" src="assets/fig/blog/fig1-overlay.png" alt="" aria-hidden="true" width="1400" height="670"><img class="L box" src="assets/fig/blog/fig1-overlay.png" alt="" aria-hidden="true" width="1400" height="670"><img class="L arr2" src="assets/fig/blog/fig1-overlay.png" alt="" aria-hidden="true" width="1400" height="670"><div class="fut"><video src="assets/vid/fig1/stays.mp4" poster="assets/vid/fig1/stays.jpg" muted playsinline preload="auto" style="top:10.299%;height:40.597%"></video><video src="assets/vid/fig1/collapses.mp4" poster="assets/vid/fig1/collapses.jpg" muted playsinline preload="auto" style="top:56.119%;height:40.746%"></video><img class="L futl" src="assets/fig/blog/fig1-overlay.png" alt="" aria-hidden="true" width="1400" height="670"></div></div></div>
+      <figcaption><b>Figure 1. A small change to the first frame flips the correct future.</b> When someone pulls the prop away, an upright book stack stays put. A book stack that leans on the prop falls. The two first frames look almost the same, but the correct outcomes are opposite. A model passes only if its two predictions also differ.</figcaption>
+    </figure>
+
+    <div class="col">
+      <section class="tldr">
+        <p><b>The finding? Current video world models mostly fail</b>. Even the best model we tested <mark class="hl">scored below random guessing overall</mark>. Bigger models, newer checkpoints, physics-informed pretraining, and reasoning tuning <b>helped only a little</b>.</p>
+        <p>A VLM prompted on the same scenes <b>solved most real-world pairs</b>. But it had difficulty finding the exact boundary. Giving a coding agent basic measurement tools (NumPy, SciPy, scikit-image) <b>increased accuracy further</b>. Adding a full physics simulation engine (MuJoCo) <b>did not give a meaningful boost</b>.</p>
+        <p>We hope these findings encourage researchers to rethink "world modeling" by pure video prediction. Next-frame prediction must do more than draw plausible pixels. It must also <mark class="hl">identify the causal states that control future dynamics</mark>.</p>
+      </section>
+    </div>
+
+    <div class="col">
+      <h2 id="prelude">What we want to measure in FlipTest</h2>
+      <p>The idea of a world model goes back to Craik<sup class="c"><a href="#r6">6</a></sup>. An intelligent system carries a small model of the world and uses it to test outcomes before it acts. Researchers now propose video world models as this kind of simulator for robots and embodied agents<sup class="c"><a href="#r1">1</a>,<a href="#r4">4</a></sup>. A robot can use one to imagine where each candidate action leads, and then pick the best action.</p>
+      <p>Most benchmarks that evaluate video world models look at one generated video. They ask whether it looks physically plausible<sup class="c"><a href="#r7">7</a>–<a href="#r9">9</a></sup>. But <mark class="hl">a video can look physically plausible and still get cause and effect wrong</mark>. For example, a model can show a box that falls from a table in a realistic way. Yet the box sits far enough from the edge that it should stay. We test whether a model's predictions follow the <b>state of the world</b>. When two nearly identical scenes have opposite outcomes, the model should predict opposite outcomes too.</p>
+      <p><b>Why does the state matter?</b></p>
+      <p>By state, we mean the physical quantities that decide what happens next, such as positions, sizes, masses and friction. In robotics, candidate actions often differ only slightly, and so do the scenes they produce. A robot that places a cup near the table edge must know whether the cup will stay or fall. A robot that stacks boxes must know whether the stack will stand. A robot that inserts a peg must know whether the peg fits the hole. In each case, <b>a few millimeters decide the outcome</b>. In the image, the difference is <b>only a few pixels</b>.</p>
+      <p>We built FlipTest around this idea. FlipTest includes <b>1,680 first frames from 25 tasks</b>, 10 simulated in MuJoCo<sup class="c"><a href="#r10">10</a></sup> and 15 from the real world. The tasks cover <b>six families of physics</b>. These families are statics and toppling, friction and rolling, size and fit, free fall and trajectory, collision and momentum, and fluids and materials. The <a href="#paper">paper</a> explains how we built and calibrated each task. Figure 2 shows example pairs from each family.</p>
+    </div>
+
+    <figure class="blog">
+      <div class="frame stack"><div class="fams" id="fams"><div class="fam" style="--fc:#80A1D4;--i:0"><h4>Statics &amp; toppling</h4><div class="ex"><div class="exh"><b>box</b></div><div class="pr"><div class="clip"><video src="assets/vid/fig2/box_A.mp4" poster="assets/vid/fig2/box_A.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>stay</span></div><div class="clip"><video src="assets/vid/fig2/box_B.mp4" poster="assets/vid/fig2/box_B.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>fall</span></div></div></div><div class="ex"><div class="exh"><b>seesaw</b></div><div class="pr"><div class="clip"><video src="assets/vid/fig2/seesaw_A.mp4" poster="assets/vid/fig2/seesaw_A.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>right side down</span></div><div class="clip"><video src="assets/vid/fig2/seesaw_B.mp4" poster="assets/vid/fig2/seesaw_B.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>left side down</span></div></div></div></div><div class="fam" style="--fc:#9C8FCF;--i:1"><h4>Friction &amp; rolling</h4><div class="ex"><div class="exh"><b>chain</b></div><div class="pr"><div class="clip"><video src="assets/vid/fig2/chain_A.mp4" poster="assets/vid/fig2/chain_A.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>rest</span></div><div class="clip"><video src="assets/vid/fig2/chain_B.mp4" poster="assets/vid/fig2/chain_B.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>slide</span></div></div></div><div class="ex"><div class="exh"><b>loop</b></div><div class="pr"><div class="clip"><video src="assets/vid/fig2/loop_A.mp4" poster="assets/vid/fig2/loop_A.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>falls</span></div><div class="clip"><video src="assets/vid/fig2/loop_B.mp4" poster="assets/vid/fig2/loop_B.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>completes</span></div></div></div></div><div class="fam" style="--fc:#75C9C8;--i:2"><h4>Size &amp; fit</h4><div class="ex"><div class="exh"><b>pipe</b></div><div class="pr"><div class="clip"><video src="assets/vid/fig2/pipe_A.mp4" poster="assets/vid/fig2/pipe_A.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>blocked</span></div><div class="clip"><video src="assets/vid/fig2/pipe_B.mp4" poster="assets/vid/fig2/pipe_B.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>pass</span></div></div></div><div class="ex"><div class="exh"><b>fit-in-cup</b></div><div class="pr"><div class="clip"><video src="assets/vid/fig2/fit-in-cup_A.mp4" poster="assets/vid/fig2/fit-in-cup_A.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>fits</span></div><div class="clip"><video src="assets/vid/fig2/fit-in-cup_B.mp4" poster="assets/vid/fig2/fit-in-cup_B.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>does not fit</span></div></div></div></div><div class="fam" style="--fc:#8CC79A;--i:3"><h4>Free fall &amp; trajectory</h4><div class="ex"><div class="exh"><b>ring toss</b></div><div class="pr"><div class="clip"><video src="assets/vid/fig2/ring-toss_A.mp4" poster="assets/vid/fig2/ring-toss_A.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>threads on</span></div><div class="clip"><video src="assets/vid/fig2/ring-toss_B.mp4" poster="assets/vid/fig2/ring-toss_B.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>misses post</span></div></div></div><div class="ex"><div class="exh"><b>drop in cup</b></div><div class="pr"><div class="clip"><video src="assets/vid/fig2/cup-drop_A.mp4" poster="assets/vid/fig2/cup-drop_A.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>misses</span></div><div class="clip"><video src="assets/vid/fig2/cup-drop_B.mp4" poster="assets/vid/fig2/cup-drop_B.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>lands in</span></div></div></div></div><div class="fam" style="--fc:#E3A6BE;--i:4"><h4>Collision &amp; momentum</h4><div class="ex"><div class="exh"><b>domino</b></div><div class="pr"><div class="clip"><video src="assets/vid/fig2/domino_A.mp4" poster="assets/vid/fig2/domino_A.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>break</span></div><div class="clip"><video src="assets/vid/fig2/domino_B.mp4" poster="assets/vid/fig2/domino_B.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>full fall</span></div></div></div><div class="ex"><div class="exh"><b>billiards</b></div><div class="pr"><div class="clip"><video src="assets/vid/fig2/billiards_A.mp4" poster="assets/vid/fig2/billiards_A.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>hit</span></div><div class="clip"><video src="assets/vid/fig2/billiards_B.mp4" poster="assets/vid/fig2/billiards_B.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>miss</span></div></div></div></div><div class="fam" style="--fc:#E6C77E;--i:5"><h4>Fluids &amp; materials</h4><div class="ex"><div class="exh"><b>brush</b></div><div class="pr"><div class="clip"><video src="assets/vid/fig2/brush_A.mp4" poster="assets/vid/fig2/brush_A.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>no mark</span></div><div class="clip"><video src="assets/vid/fig2/brush_B.mp4" poster="assets/vid/fig2/brush_B.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>colored stroke</span></div></div></div><div class="ex"><div class="exh"><b>dye drop</b></div><div class="pr"><div class="clip"><video src="assets/vid/fig2/dye-drop_A.mp4" poster="assets/vid/fig2/dye-drop_A.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>colored plume</span></div><div class="clip"><video src="assets/vid/fig2/dye-drop_B.mp4" poster="assets/vid/fig2/dye-drop_B.jpg" muted autoplay loop playsinline preload="auto" width="480" height="270"></video><span>no change</span></div></div></div></div></div></div>
+      <figcaption><b>Figure 2. Example minimal pairs from FlipTest.</b> We show two example pairs from each of the six physical families. Each pair has its two opposite outcomes.</figcaption>
+    </figure>
+
+    <div class="col">
+      <p>Many physical systems have a <b>boundary</b> between two outcomes. Near the boundary, a small change in the state flips the outcome. If a model predicts from the state, its prediction should flip too. We test each boundary at <b>three levels</b>. Each level is stricter than the previous level. The levels include 300 minimal pairs (600 frames), 600 control frames and 480 sweep frames.</p>
+      <ul class="levels">
+        <li><img class="lv" src="assets/fig/level1.png" alt="" width="408" height="240"><span><b>Level 1: pairs.</b> Two frames sit on opposite sides of the boundary. A model gets credit for a pair only if it gets both outcomes right. Random guessing gets 25%.</span></li>
+        <li><img class="lv" src="assets/fig/level2.png" alt="" width="408" height="240"><span><b>Level 2: controls.</b> There are four evenly spaced states. Only the middle step crosses the boundary. A model that reads the state should flip only there.</span></li>
+        <li><img class="lv" src="assets/fig/level3.png" alt="" width="408" height="240"><span><b>Level 3: sweeps.</b> There are 30 states that run across the boundary. They show where a model switches its prediction and how sharply.</span></li>
+      </ul>
+      <p>Every model sees <b>only the clean first frame and a neutral prompt</b>. The video model generates a video of the outcome. Then two automatic judges watch the video and decide which outcome it shows. The <a href="#paper">paper</a> has the full details on metrics, prompts and judging.</p>
+      <p>To conclude, our test fits in one sentence.</p>
+      <p class="crit"><b>If a small change to the present changes the future, the prediction should change too.</b></p>
+
+      <h2 id="results">Results: How do video world models do on FlipTest?</h2>
+      <p>We test today's video world models on all three levels of FlipTest, from the easiest to the strictest. The test includes 11 image-to-video world models from four groups:</p>
+      <ul>
+        <li><b>General video generators:</b> Omni 1.1 Flash, MiniMax-H3, Wan2.2-I2V-A14B, HunyuanVideo-1.5, CogVideoX1.5-5B-I2V.</li>
+        <li><b>Reasoning-tuned:</b> VBVR-Wan2.2.</li>
+        <li><b>Physical-AI models:</b> Cosmos-Predict2.5, Cosmos3-Nano, Cosmos3-Super.</li>
+        <li><b>Robot-oriented models:</b> VPP2, LingBot-Video-MoE-30B-A3B.</li>
+      </ul>
+      <p>Each model generates one video per first frame.</p>
+
+      <h3 id="pairs"><img class="h3lv" src="assets/fig/level1.png" alt="" width="408" height="240">Result 1: Video models rarely solve minimal pairs</h3>
+      <p>We start with the most basic question. When two nearly identical scenes have opposite outcomes, can a video model show both outcomes correctly?</p>
+      <p>We use the level 1 pairs. We give each model the two first frames of a pair, one at a time, and it generates a video for each. We count a pair as solved <b>only if both videos show the correct outcome</b>. Random guessing solves 25% of pairs.</p>
+    </div>
+
+    <figure class="blog">
+      <div class="frame stack"><img class="fit" src="assets/fig/blog/fig3-pair-accuracy.png" alt="Bar chart of pair accuracy for 11 video world models: average, real and simulated, with the 25% chance line." width="2052" height="968" style="width:852px" loading="lazy"></div>
+      <figcaption><b>Figure 3. Pair accuracy on the real and simulated splits.</b> Models are sorted by the average of the two splits. The dashed line marks the 25% expected from guessing each frame at random. Every model scores higher on real scenes, where photographs often carry semantic cues that correlate with the outcome.</figcaption>
+    </figure>
+
+    <div class="col">
+      <p><b>We find that video models rarely solve a pair.</b> On the simulated tasks, <mark class="hl">no model scores above 5.3%</mark>, far below the 25% from random guessing. On real scenes, Omni 1.1 Flash does best with <b>31.3%</b>, followed by MiniMax-H3 (25.3%) and Wan2.2-I2V-A14B (24.7%). Only Omni 1.1 Flash and MiniMax-H3 score higher than random guessing.</p>
+      <p><b>We find that video models often give both frames the same outcome.</b> This behavior explains scores below random guessing. The two frames should produce opposite outcomes. If a model shows the same outcome for both, <b>one video is always wrong</b> and the pair is never solved.</p>
+      <p><b>We find that bigger models, newer versions and extra tuning help only a little.</b> Averaged over both sim and real splits, the larger Cosmos3-Super (13.7%) scores slightly higher than Cosmos3-Nano (10.7%). The newer Cosmos3-Nano scores slightly higher than Cosmos-Predict2.5 (10.3%). Reasoning tuning does not help either: VBVR-Wan2.2 scores 14.0%, <b>exactly the same as its base model</b>. Physics-oriented training also <b>gives no advantage</b>. Cosmos3-Super reaches 13.7%, and Wan2.2, an open general model of similar scale, reaches 14.0%.</p>
+      <p class="takeaway"><b>In short:</b> when two nearly identical scenes should have opposite outcomes, video models <b>usually show the same outcome for both</b>. Bigger, newer or further-trained models <b>barely do better</b>.</p>
+
+      <h3 id="examples">Examples: What the video models generate for each pair</h3>
+      <p>Here are six pairs, three simulated and three real. For each frame, we show the videos from four of the models. Pick a pair and compare the two columns. A model passes only if its two videos show different outcomes and both match the ground truth.</p>
+    </div>
+
+    <section class="wide gallery" aria-label="Minimal pair examples">
+      <div class="g-tabs" role="tablist" id="g-tabs"></div>
+      <div class="g-head">
+        <p id="g-desc"></p>
+        <div class="g-tools"><button type="button" id="g-restart">Restart videos</button><button type="button" id="g-pause">Pause</button></div>
+      </div>
+      <div class="g-grid" id="g-grid"></div>
+      <p class="g-legend"><span class="chip ok">✓</span> matches the ground truth, <span class="chip bad">✗</span> does not, and <span class="chip unc">?</span> means no outcome could be read from the video.</p>
+    </section>
+
+
+    <div class="col">
+      <h3 id="controls"><img class="h3lv" src="assets/fig/level2.png" alt="" width="408" height="240">Result 2: Video models do not react to the change that matters</h3>
+      <p>Result 1 shows that video models fail on pairs. We now want to know why. A model can fail in two opposite ways:</p>
+      <ul>
+        <li><b>Blindness (Under-reacting):</b> The model ignores the difference and never flips its answer.</li>
+        <li><b>Noise (Over-reacting):</b> The model flips its answer randomly to any visual change, even when physics has not changed.</li>
+      </ul>
+      <p>To separate these two cases, we use the level 2 controls: four evenly spaced states of the same scene. Only the middle step crosses the boundary. We then compare two rates:</p>
+      <ul>
+        <li><b>Signal:</b> How often does the model flip when it crosses the true physical boundary?</li>
+        <li><b>Noise:</b> How often does it flip for an equal-sized change that stays on the same side?</li>
+      </ul>
+      <p>We call the difference between the two rates <b>Selective Sensitivity</b>. A model that reads the state <b>flips only when it matters</b>, so its selective sensitivity is well above zero.</p>
+    </div>
+
+    <figure class="blog">
+      <div class="frame stack"><img class="fit" src="assets/fig/blog/fig5-control-probe.gif" alt="Control probe: four equally spaced overhangs of a box on a desk; only the middle step crosses the 0.50 boundary." width="1368" height="665" style="width:720px" loading="lazy">
+      <hr>
+      <div class="row"><img class="fit" src="assets/fig/blog/fig5-flip-rates.gif" alt="Scatter of flip rate on the crossing step against flip rate on same-side steps; video models sit on the diagonal, the VLM far below it." width="1045" height="1045" style="flex:1.000" loading="lazy"><img class="fit" src="assets/fig/blog/fig5-selectivity.gif" alt="Selective sensitivity with 95% intervals for the VLM and each video model." width="1235" height="1045" style="flex:1.182" loading="lazy"></div></div>
+      <figcaption><b>Figure 4. Video models are not selectively sensitive.</b> Top: the control probe shows four equally spaced states. Only the middle step crosses the boundary. Each state plays its simulated outcome (box at the desk edge; offsets exaggerated for display). Bottom left: flip rate on the crossing step against flip rate on same-side steps. A model that reads the state sits in the shaded lower-right half. Bottom right: selective sensitivity with 95% intervals over scenes, video models listed alphabetically. Every video-model interval covers 0.</figcaption>
+    </figure>
+
+    <div class="col">
+      <p><b>We find that video models fail by blindness.</b> All 11 video models sit right on the diagonal in Figure 4. Both rates are low. The models change their prediction for a small tweak (4–23%) <b>as often as</b> for a true tipping point (6–25%). <mark class="hl">Their selective sensitivity stays near zero</mark>, from −0.07 to +0.07.</p>
+      <p><b>We find that a VLM does react to the change that matters.</b> When we test Gemini 3.6 Flash directly on the first frame, it flips on 61% of boundary-crossing steps. It flips on only 15% of same-side steps. Its selective sensitivity is <b>+0.46</b>.</p>
+      <p class="takeaway"><b>In short:</b> video models <b>do not notice the small change that decides the outcome</b>. They rarely change their prediction. When they do change, it is just as often for a change that does not matter.</p>
+      <h3 id="sweeps"><img class="h3lv" src="assets/fig/level3.png" alt="" width="408" height="240">Result 3: Video models cannot find where the outcome flips</h3>
+      <p>Pairs and controls test only a few points near the boundary. We also examine the full transition. As a scene moves step by step from one outcome to the other, does the prediction switch? Does it switch at the right place?</p>
+      <p>We use the level 3 sweeps with 30 states per scene across the boundary. The sweep covers four simulated tasks. They are a box sliding off a desk, a block on an incline, a seesaw tipping, and a block stack that may collapse. We test three video world models, an image generator (Nano Banana Pro), and two VLMs. At each step, we record how often each model predicts the event (Figure 5).</p>
+    </div>
+
+    <figure class="blog">
+      <div class="frame stack"><img class="fit" src="assets/fig/blog/fig6-sweep-probe.gif" alt="Sweep probe: 30 overhang values across the 0.50 boundary, densest near it, with each state colored by its simulated outcome as the box moves through them." width="1368" height="589" style="width:720px" loading="lazy">
+      <hr>
+      <div class="row"><img class="fit" src="assets/fig/blog/fig6-pooled.png" alt="Probability of predicting the event along the sweep, pooled over four tasks, for the simulator, two VLMs, three video models and an image model." width="1140" height="1083" style="flex:1.053" loading="lazy"><img class="fit" src="assets/fig/blog/fig6-per-task.gif" alt="The same curves for each of the four tasks." width="1254" height="1140" style="flex:1.100" loading="lazy"></div></div>
+      <figcaption><b>Figure 5. Video models do not locate the boundary.</b> Top: the sweep probe shows 30 states per scene across the boundary, densest near the boundary. Each dot takes the color of its simulated outcome. Bottom left: <span class="math">P(event)</span> along the sweep, pooled over the four tasks. The shaded half is the event side. Bottom right: the same plot per task (4 scenes × 30 states each), with the axis in the task's own units. The VLMs bend toward the simulator step. The video models stay flat.</figcaption>
+    </figure>
+
+    <div class="col">
+      <p><b>We find that video models predict the same outcome along the whole sweep.</b> <mark class="hl">Their curves are flat on all four tasks</mark>. We compare how often a model predicts the event on the two sides of the boundary. The difference is <b>near zero</b>: +0.02 for Omni 1.1 Flash, +0.02 for Cosmos3-Super, 0.00 for VBVR-Wan2.2, and +0.06 for Nano Banana Pro. The curves stay flat even at the far ends of the sweep, where the scenes look different. On each task, a video model predicts the event almost always or almost never, wherever the object sits.</p>
+      <p><b>We find that VLMs do follow the change.</b> Their curves <b>rise in an S shape</b> across the boundary, with gaps of +0.62 (Gemini 4 Argon) and +0.58 (Gemini 3.8 Flash).</p>
+      <p><b>We find that VLMs put the boundary slightly in the wrong place.</b> Their curves usually <b>rise too early</b>. They predict that the object falls or slides while the scene is still on the stable side. However, this result depends on the task. On the block stack task, Gemini 4 Argon makes the opposite error.</p>
+      <p class="takeaway"><b>In short:</b> as a scene moves step by step past the tipping point, video models <b>predict the same outcome</b>. VLMs like Gemini <b>do follow the change</b>, but they usually expect the outcome to flip <b>too early</b>.</p>
+      <h2 id="state">Where do video models fail?</h2>
+      <p>Results 1 to 3 show that video models often predict the wrong outcome. We now want to know which step goes wrong. We can split predicting the outcome from one image into three steps:</p>
+      <ul>
+        <li><b>Perception:</b> Read the physical state from the image, such as how far a box hangs over the desk edge.</li>
+        <li><b>Physics:</b> Calculate how that state changes over time.</li>
+        <li><b>Rendering:</b> Draw the outcome as video frames.</li>
+      </ul>
+      <p>We borrow this split from Visual De-animation<sup class="c"><a href="#r11">11</a></sup>, which builds the three steps as separate parts. A video world model does all three inside one network. When it fails, we cannot see which step failed.</p>
+      <p>To find the answer, we compare three predictors that make different steps explicit:</p>
+      <ul>
+        <li><b>VLM, direct.</b> Gemini 4 Argon looks at the image and answers in one call, with no tools.</li>
+        <li><b>Measure agent.</b> This coding agent is built on the same model. Before it answers, it can write code to measure the image (NumPy, SciPy, scikit-image). It has no physics engine.</li>
+        <li><b>Simulation agent.</b> This is the same agent with one extra rule. It must rebuild the scene in MuJoCo and take its answer from the simulation. We re-run that simulation in a fresh offline sandbox.</li>
+      </ul>
+      <p>For a fair comparison, all three systems get the same first frame and neutral prompt as the video models. We disable web access.</p>
+    </div>
+
+    <figure class="blog">
+      <div class="frame stack"><img class="fit" src="assets/fig/blog/fig7-full.gif" alt="Panel a: the four predictors placed on the Visual De-animation stages. Panel b: overall accuracy. Panel c: sweep accuracy against distance to the boundary." width="1794" height="1203" loading="lazy"></div>
+      <figcaption><b>Figure 6. Making the state explicit closes the gap.</b> (a) The predictors sit on the Visual De-animation stages, one row lit at a time. Each row ends in an outcome label scored against the ground truth. (b) Pair accuracy on the 150 real pairs and frame accuracy on the 480 sweep frames. (c) Sweep accuracy against distance to the boundary, pooled over four tasks, four scenes and both sides of the boundary.</figcaption>
+    </figure>
+
+    <div class="col">
+      <p><b>We find that a VLM can read the outcome from the same first frame.</b> When we ask the VLM directly, it solves <b>87.3%</b> of real pairs. The best video model solves 31.3%. On the sweeps, the VLM makes mistakes close to the boundary. Within each task, the mistakes all lean the same way. For example, out of 120 frames per task, it calls 42 resting blocks on the incline sliding. On the block stack, it leans the other way and calls 25 collapsing towers stable. We conclude that the VLM looks at the right thing and <b>only sets the boundary slightly wrong</b>.</p>
+      <p><b>We find that measuring the image locates the boundary almost perfectly.</b> When the agent measures the image, it solves <b>93.3%</b> of real pairs and <b>99.4%</b> of sweep frames. We see only three mistakes on the sweeps. All three mistakes are on seesaw frames at the two steps closest to the boundary, where it answers <em>balanced</em>. On real pairs, we see the largest gains when the deciding quantity <b>can be measured directly in the pixels</b>. For example, for the task about objects at the table edge, accuracy rises from 70% to 100%. The agent measures how far the object hangs over the edge. We see the smallest gains when the deciding quantity is 3D and hard to judge from one view, such as propped stacks.</p>
+      <p><b>We find that adding a physics engine barely helps.</b> When the agent simulates the scene in MuJoCo, it solves 91.3% of real pairs and 98.1% of sweep frames. This score is about the same as measuring alone. Why so little gain? We record the prediction that the agent makes from its measurements before it builds the scene. That prediction is already right on 96.0% of single real frames. Across 761 simulations on real and sweep frames, the simulation changes the prediction <b>only 4 times</b>. It changes three times for the better and once for the worse. We conclude that once the scene is measured correctly, the physics step is easy. <mark class="hl">Almost all of the agents' gain comes from measuring</mark>.</p>
+      <p class="takeaway"><b>In short:</b> from the same first frame that the video models see, a VLM and the two agents <b>get most outcomes right</b>. <b>Measuring the scene is the step that matters most.</b> Once the scene is measured, the physics is easy. Video models struggle to predict the outcome from the image.</p>
+
+      <details>
+        <summary>If you are curious: where the agents spend their time (click)</summary>
+        <p>Each agent run takes about ten minutes (median 615 s for the Measure agent, 636 s for the Simulation agent). The agent spends most of that time measuring the image. The Simulation agent then uses about a quarter of its run to build and run the MuJoCo scene.</p>
+        <figure class="blog" style="margin: 12px 0 16px">
+          <div class="frame stack"><img class="fit" src="assets/fig/blog/figA9-agent-time.png" alt="Share of agent wall-clock time per phase for the two agents, overall and over the course of a run." width="1368" height="1292" style="width:852px" loading="lazy"></div>
+          <figcaption style="margin-left: 0"><b>Figure 7. Where the agents spend their time.</b> Top: share of wall-clock time per phase, 780 runs per agent. Bottom: how that share changes from the start to the end of a run.</figcaption>
+        </figure>
+      </details>
+
+      <h2 id="told">Told the answer, can video models draw it?</h2>
+      <p>The previous section shows that the outcome can be found from the first frame alone. A video model has two jobs. It must predict the outcome, and it must draw the outcome as video. We now test the second job alone. When we tell the model the correct outcome, <b>any mistake that remains comes from drawing</b>.</p>
+      <p>From the 300 level 1 pairs, we use the 600 first frames and change only one part of each prompt. The neutral prompt names both possible outcomes. Example: <code class="prompt">the box either stays put on the tabletop or tips over the edge and falls to the floor, depending on how far it overhangs</code>. The new prompt states the true outcome instead. Example: <code class="prompt">the box tips over the edge and falls to the floor</code>. With the rest of the prompt unchanged, all 11 models generate new videos. A judge (Gemini 3.8 Flash) reads which outcome each video shows. We count unclear videos as wrong.</p>
+      <p><b>We find that knowing the answer helps a lot.</b> Pair accuracy increases <b>from 18.3% to 73.7%</b> for Omni 1.1 Flash (Figure 8). It increases from 14.3% to 68.0% for MiniMax-H3 and from 14.0% to 55.7% for Wan2.2-I2V-A14B. This gap shows that <mark class="hl">video models cannot predict the outcome from the image on their own</mark>.</p>
+    </div>
+
+    <figure class="blog">
+      <div class="frame stack"><img class="fit" src="assets/fig/blog/fig8-told-answer.png" alt="Bar chart for 11 video world models: pair accuracy with the neutral prompt and when told the answer, with the 25% chance line." width="2052" height="968" style="width:852px" loading="lazy"></div>
+      <figcaption><b>Figure 8. Video models told the answer.</b> Both bars show pair accuracy. A pair counts only when both of its videos show the right outcome. Gray uses the neutral prompt (Figure 3, averaged over the sim and real splits). Purple uses a prompt that states the true outcome. Gemini 3.8 Flash checks each video. Models are in the same order as in Figure 3. The dashed line marks the 25% pair accuracy expected from guessing each frame at random.</figcaption>
+    </figure>
+
+    <div class="col">
+      <p><b>We find that video models still often draw the wrong outcome.</b> Even with the answer, the best model <b>misses about a quarter of pairs</b>. Simulated scenes are harder. Omni 1.1 Flash solves 86.7% of real pairs and only 60.7% of simulated pairs. CogVideoX1.5-5B-I2V solves only 11.0% of pairs.</p>
+      <p class="takeaway"><b>In short:</b> when we tell video models the outcome, they get far more pairs right. <b>Predicting the outcome is their biggest problem.</b> Even with the answer, they often draw the wrong outcome. <b>Drawing is a problem too.</b></p>
+
+      <h2 id="thoughts">Our view on what comes next</h2>
+      <p><b class="qa">What must a world model get right?</b> “World model” has become an overloaded term<sup class="c"><a href="#r12">12</a></sup>. It usually refers to one of two roles:</p>
+      <ol>
+        <li>An interactive environment where an agent can act, explore, and co-evolve safely.</li>
+        <li>An internal representation of state that predicts what happens next, so a robot or agent can plan its actions.</li>
+      </ol>
+      <p>In the agentic era, models like Gemini 4 Carbon and Fable 5.2 point toward generalist physical agents that operate in real environments. The main bottleneck is efficiency. Real-world trial and error is too slow, costly, and fragile. World models promise a virtual sandbox where agents can simulate thousands of trials quickly. Here, agents receive physically grounded feedback before they take physical action.</p>
+      <p><b>In either role, basic causality is essential.</b> Our FlipTest shows that current video world models fail this basic requirement. When a small change flips what should happen next, <b>video models barely notice the difference</b>. By contrast, our results show that <b>coding agents and standard VLMs read these fine-grained physical states well</b>.</p>
+      <p><b class="qa">What could future world simulators look like?</b> Our results point toward <mark class="hl">a modular, agentic blueprint for future world simulators</mark>. A single video model does not need to compute the physics and also render the pixels. We can divide the labor. For example, a simple prototype could follow a pipeline like: an agent first analyzes the scene to estimate its physical state. When necessary, it invokes a dedicated simulator or numerical solver to predict the system's evolution. Finally, it passes the predicted trajectory to a video generation model to render the resulting motion.</p>
+      <p>This kind of approach builds on longstanding ideas from inverse graphics<sup class="c"><a href="#r11">11</a>,<a href="#r13">13</a></sup> and analysis-by-synthesis<sup class="c"><a href="#r14">14</a></sup>. It could also build on recent systems that use code and programs as world representations<sup class="c"><a href="#r15">15</a>,<a href="#r16">16</a>,<a href="#r17">17</a></sup>. Current agents can already find the correct physical outcome. <b>The main challenge now is to teach video models to render the given outcome faithfully.</b> The video models must not override the physics.</p>
+
+      <h2 id="limitations">Limitations</h2>
+      <p>By design, FlipTest focuses on <b>threshold dynamics of mostly rigid objects from a single initial frame</b>. We chose this controlled setting because ground-truth outcomes are unambiguous and we can identify the physical boundary precisely. We change a single decisive factor and keep the rest constant. We can then attribute any change in prediction directly to that causal change.<br><br>Real-world scenes are messier and involve multiple interacting factors over time. However, sensitivity in simple, isolated regimes is a basic requirement to predict these dynamics. A natural next step is to extend FlipTest to scenes with multiple intersecting boundaries.</p>
+
+      <h2 id="citation">Citation</h2>
+      <p>If you find FlipTest useful, please cite:</p>
+      <div class="citebox"><a href="#citation" class="bibcard" title="Copy BibTeX"><span class="lab">[BibTeX]</span><span class="bibthumb">@article{fliptest2026,<br>&nbsp;title = {The Flip<br>&nbsp;Test: Video<br>&nbsp;World Models…</span><span class="note">click to copy</span></a><pre class="bib" id="bib">@article{fliptest2026,
+  title   = {The Flip Test: Video World Models Fail to Learn the World State},
+  author  = {Luo, Mi and Yu, Lijun and Yu, Adams Wei and Cao, Ang and Sun, Baochen and Hua, Nan and Hao, Yuan and Dimakis, Alex and Xu, Ya and Chi, Ed H. and Wang, Xuezhi and Liu, Yinxiao},
+  journal = {arXiv preprint},
+  year    = {2026}
+}</pre></div>
+
+      <h2 id="references" style="font-size: 20px">References</h2>
+      <ol class="refs">
+        <li id="r1">N. Agarwal et al. Cosmos world foundation model platform for physical AI. arXiv:2501.03575, 2025.</li>
+        <li id="r2">O. Cameron, J. Hawke. <a href="https://odyssey.systems/meet-odyssey-3" target="_blank" rel="noopener">Meet Odyssey-3: Our most powerful foundation world model</a>. Odyssey blog, 2026.</li>
+        <li id="r3">World Labs Team. <a href="https://www.worldlabs.ai/blog/atlas" target="_blank" rel="noopener">Atlas: A world model for spatial intelligence</a>. World Labs blog, 2026.</li>
+        <li id="r4">NVIDIA. <a href="https://research.nvidia.com/labs/gear/gr00t-2/" target="_blank" rel="noopener">GR00T 2: Scaling robot foundation models for generalization, dexterity, and adaptation</a>. Project page, 2026.</li>
+        <li id="r5">C. M. Jiang, X. Masotto, B. Sun. <a href="https://waymo.com/blog/2026/02/the-waymo-world-model-a-new-frontier-for-autonomous-driving-simulation/" target="_blank" rel="noopener">The Waymo World Model: A new frontier for autonomous driving simulation</a>. Waymo blog, 2026.</li>
+        <li id="r6">K. J. W. Craik. <i>The Nature of Explanation.</i> Cambridge University Press, 1943.</li>
+        <li id="r7">H. Bansal et al. VideoPhy: Evaluating physical commonsense for video generation. ICLR, 2025.</li>
+        <li id="r8">S. Motamed et al. Do generative video models understand physical principles? WACV, 2026.</li>
+        <li id="r9">D. Li et al. WorldModelBench: Judging video generation models as world models. NeurIPS, 2026.</li>
+        <li id="r10">E. Todorov, T. Erez, Y. Tassa. MuJoCo: A physics engine for model-based control. IROS, 2012.</li>
+        <li id="r11">J. Wu, E. Lu, P. Kohli, B. Freeman, J. Tenenbaum. Learning to see physics via visual de-animation. NeurIPS, 2017.</li>
+        <li id="r12">X. Huang. <a href="https://www.xunhuang.me/blogs/world_model.html" target="_blank" rel="noopener">Towards video world models</a>. Blog post, 2025.</li>
+        <li id="r13">P. W. Battaglia, J. B. Hamrick, J. B. Tenenbaum. Simulation as an engine of physical scene understanding. PNAS, 2013.</li>
+        <li id="r14">A. Yuille, D. Kersten. Vision as Bayesian inference: Analysis by synthesis? Trends in Cognitive Sciences, 2006.</li>
+        <li id="r15">Y. Chen, G. Lin, C. Zhang. Code World Model: Coding agent as world brain. <a href="https://arxiv.org/abs/2608.25927" target="_blank" rel="noopener">arXiv:2608.25927</a>, 2026.</li>
+        <li id="r16">Z. Liu et al. Agentic world action models. <a href="https://arxiv.org/abs/2610.30136" target="_blank" rel="noopener">arXiv:2610.30136</a>, 2026.</li>
+        <li id="r17">H. Wang et al. Code as Worlds: Agentic discovery of executable world representations for physical reasoning. <a href="https://arxiv.org/abs/2608.27549" target="_blank" rel="noopener">arXiv:2608.27549</a>, 2026.</li>
+</ol>
+
+    </div>
+  </article>
+  </div>
+</main>
+
+<script src="assets/gallery.js"></script>
+<script>
+(function () {
+  const G = window.GALLERY || [];
+  const pretty = s => s.replace(/_/g, " ");
+  const tabs = document.getElementById("g-tabs");
+  const grid = document.getElementById("g-grid");
+  const desc = document.getElementById("g-desc");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let paused = reduce;
+
+  function chip(pred, gt) {
+    if (pred === "disagree") return '<span class="chip unc">? unclear</span>';
+    if (pred === "unclear") return '<span class="chip unc">? unclear</span>';
+    const ok = pred === gt;
+    return `<span class="chip ${ok ? "ok" : "bad"}">${ok ? "✓" : "✗"} ${pretty(pred)}</span>`;
+  }
+  function verdict(pred, gt) {
+    if (pred[0] === gt[0] && pred[1] === gt[1]) return '<span class="verdict ok">pair solved</span>';
+    if (pred[0] === pred[1] && !["unclear", "disagree"].includes(pred[0])) return '<span class="verdict bad">same future for both</span>';
+    return '<span class="verdict bad">pair failed</span>';
+  }
+  function vid(src) {
+    return `<video src="assets/${src}" muted loop playsinline preload="metadata" ${paused ? "" : "autoplay"}></video>`;
+  }
+  function render(i) {
+    const p = G[i];
+    [...tabs.children].forEach((b, k) => { b.setAttribute("aria-selected", k === i); b.tabIndex = k === i ? 0 : -1; });
+    desc.textContent = p.desc;
+    const gt = p.members.map(m => m.gt);
+    const block = (title, sub, cells, cls = "") =>
+      `<div class="g-block${cls}"><div class="g-btitle">${title}${sub}</div><div class="g-pair">${cells.join("")}</div></div>`;
+    let h = block("First frame", '<span class="verdict">what the model sees</span>',
+      p.members.map((m, k) => `<div class="g-cell"><img src="assets/${m.img}" alt="${p.title}, frame ${"AB"[k]}"><span class="chip gt">${"AB"[k]} · truth: ${pretty(m.gt)}</span></div>`),
+      p.members[0].gtvid ? "" : " solo");
+    if (p.members[0].gtvid)
+      h += block("Simulation", '<span class="verdict ok">ground truth</span>', p.members.map(m => `<div class="g-cell">${vid(m.gtvid)}</div>`));
+    for (const r of p.models)
+      h += block(r.name, verdict(r.pred, gt), r.vid.map((v, k) => `<div class="g-cell">${vid(v)}${chip(r.pred[k], gt[k])}</div>`));
+    grid.innerHTML = h;
+  }
+  G.forEach((p, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "g-tab"; b.setAttribute("role", "tab"); b.id = "g-tab-" + p.id;
+    b.innerHTML = `${p.title} <span class="sp">${p.split === "sim" ? "simulated" : "real"}</span>`;
+    b.addEventListener("click", () => render(i));
+    b.addEventListener("keydown", e => {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      const j = (i + (e.key === "ArrowRight" ? 1 : G.length - 1)) % G.length;
+      render(j); tabs.children[j].focus();
+    });
+    tabs.appendChild(b);
+  });
+  const pauseBtn = document.getElementById("g-pause");
+  const setPauseLabel = () => { pauseBtn.textContent = paused ? "Play" : "Pause"; };
+  document.getElementById("g-restart").addEventListener("click", () => {
+    grid.querySelectorAll("video").forEach(v => { v.currentTime = 0; if (!paused) v.play(); });
+  });
+  pauseBtn.addEventListener("click", () => {
+    paused = !paused; setPauseLabel();
+    grid.querySelectorAll("video").forEach(v => paused ? v.pause() : v.play());
+  });
+  setPauseLabel();
+  if (G.length) render(0);
+
+
+  // Click a figure to see it larger
+  document.querySelectorAll("figure .frame img:not(.f1 img)").forEach(img => img.addEventListener("click", () => {
+    const lb = document.createElement("div"); lb.id = "lb";
+    lb.innerHTML = `<img src="${img.src}" alt="${img.alt}">`;
+    lb.addEventListener("click", () => lb.remove());
+    addEventListener("keydown", function esc(e) { if (e.key === "Escape") { lb.remove(); removeEventListener("keydown", esc); } });
+    document.body.appendChild(lb);
+  }));
+
+  const bibText = () => document.getElementById("bib").textContent;
+  document.querySelectorAll(".bibcard").forEach(card => card.addEventListener("click", e => {
+    if (!navigator.clipboard) return;             // no clipboard: the link scrolls to the citation instead
+    e.preventDefault();
+    const el = card.querySelector(".note") || card.querySelector(".lab"), was = el.textContent;
+    navigator.clipboard.writeText(bibText())
+      .then(() => { el.textContent = el.classList.contains("lab") ? "[Copied]" : "copied"; setTimeout(() => el.textContent = was, 1500); })
+      .catch(() => document.getElementById("citation").scrollIntoView({ behavior: "smooth" }));
+  }));
+
+  // Figure 1: present, then the arrows into the world model, then the arrows out, then the futures play
+  const f1 = document.getElementById("f1");
+  if (f1) {
+    const vs = [...f1.querySelectorAll("video")];
+    vs.forEach(v => v.muted = true);
+    const play = v => v.play().catch(() => {});
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      f1.classList.add("s1", "s2", "s3", "s4");
+      vs.forEach(v => { v.loop = true; play(v); });
+    } else {
+      let timers = [], ended = 0, running = false;
+      const at = (ms, fn) => timers.push(setTimeout(fn, ms));
+      const run = () => {
+        running = true; ended = 0;
+        f1.classList.add("reset"); f1.classList.remove("s1", "s2", "s3", "s4");
+        vs.forEach(v => { v.pause(); v.currentTime = 0; });
+        void f1.offsetWidth; f1.classList.remove("reset");
+        at(700, () => f1.classList.add("s1"));
+        at(1400, () => f1.classList.add("s2"));
+        at(2000, () => f1.classList.add("s3"));
+        at(2600, () => { f1.classList.add("s4"); vs.forEach(play); });
+      };
+      vs.forEach(v => v.addEventListener("ended", () => { if (++ended === vs.length) at(1200, run); }));
+      const check = () => {
+        if (running) return;
+        const r = f1.getBoundingClientRect();
+        if (r.top < innerHeight * 0.85 && r.bottom > 0) run();
+      };
+      addEventListener("scroll", check, { passive: true }); addEventListener("resize", check); check();
+      ["pointerdown", "keydown", "touchstart"].forEach(t => addEventListener(t, () => f1.classList.contains("s4") && vs.forEach(v => v.paused && !v.ended && play(v)), { once: true, passive: true }));
+    }
+  }
+
+  // Figure 2: every clip autoplays; the families light up one after another when the figure comes into view
+  const fams = document.getElementById("fams");
+  if (fams) {
+    const cards = [...fams.children];
+    fams.querySelectorAll("video").forEach(v => {
+      v.muted = true;
+      const go = () => v.play().catch(() => {});
+      v.addEventListener("canplay", go, { once: true }); go();
+    });
+    const kick = () => fams.querySelectorAll("video").forEach(v => v.paused && v.play().catch(() => {}));
+    ["pointerdown", "keydown", "touchstart"].forEach(t => addEventListener(t, kick, { once: true, passive: true }));
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      fams.classList.add("seq");
+      let done = false;
+      const reveal = () => {
+        if (done) return;
+        const r = fams.getBoundingClientRect();
+        if (r.top > innerHeight * 0.8 || r.bottom < 0) return;
+        done = true; removeEventListener("scroll", reveal);
+        cards.forEach((c, i) => setTimeout(() => c.classList.add("on"), i * 700));
+      };
+      addEventListener("scroll", reveal, { passive: true }); addEventListener("resize", reveal); reveal();
+      setTimeout(() => { if (!done) cards.forEach(c => c.classList.add("on")); }, 30000);
+    }
+  }
+
+  // Contents rail: built from the article headings, so it follows any heading edits; marks the section being read
+  const toc = document.getElementById("toc");
+  if (toc) {
+    const heads = [...document.querySelectorAll("article h2, article h3[id]")]
+      .map(h => ({ h, id: h.id || (h.closest("[id]") || {}).id, sub: h.tagName === "H3" }))
+      .filter(x => x.id);
+    const box = document.createElement("div"), label = document.createElement("p"), ol = document.createElement("ol");
+    box.className = "toc-in"; label.className = "toc-h"; label.textContent = "Contents";
+    heads.forEach(x => {
+      const li = document.createElement("li"), a = document.createElement("a");
+      if (x.sub) li.className = "sub";
+      a.href = "#" + x.id; a.textContent = x.h.textContent.trim();
+      const lv = x.h.querySelector("img.h3lv");   // level icon on Result 1-3 headings
+      if (lv) { const ic = lv.cloneNode(); ic.className = "toclv"; a.prepend(ic); a.classList.add("has-lv"); }
+      li.append(a); ol.append(li);
+    });
+    box.append(label, ol); toc.append(box);
+    const links = [...ol.querySelectorAll("a")];
+    const spy = () => {
+      let cur = 0;
+      heads.forEach((x, k) => { if (x.h.getBoundingClientRect().top < innerHeight * 0.3) cur = k; });
+      if (innerHeight + scrollY >= document.documentElement.scrollHeight - 2) cur = heads.length - 1;
+      links.forEach((a, k) => a.classList.toggle("on", k === cur));
+    };
+    addEventListener("scroll", spy, { passive: true }); addEventListener("resize", spy); spy();
+    const gal = document.querySelector(".gallery");
+    if (gal && "IntersectionObserver" in window)
+      new IntersectionObserver(([e]) => toc.classList.toggle("off", e.isIntersecting)).observe(gal);
+  }
+})();
+</script>
+
+<script>
+(function () {
+  var bar = document.getElementById("progress");
+  if (!bar) return;
+  function tick() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + "%";
+  }
+  addEventListener("scroll", tick, { passive: true });
+  addEventListener("resize", tick);
+  tick();
+})();
+</script>
+
+<!-- Cloudflare Web Analytics -->
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon='{"token": "e917da84cda8474994342b5d4338d364"}'></script>
+<!-- End Cloudflare Web Analytics -->
+
+<!-- Default Statcounter code for my personal website https://romyluo.com/ -->
+<script type="text/javascript">
+var sc_project=13339941; 
+var sc_invisible=1; 
+var sc_security="68ea1fc3"; 
+</script>
+<script type="text/javascript"
+src="https://www.statcounter.com/counter/counter.js" async></script>
+<noscript><div class="statcounter"><a title="Web Analytics Made Easy -
+Statcounter" href="https://statcounter.com/" target="_blank"><img
+class="statcounter" src="https://c.statcounter.com/13339941/0/68ea1fc3/1/"
+alt="Web Analytics Made Easy - Statcounter"
+referrerPolicy="no-referrer-when-downgrade"></a></div></noscript>
+<!-- End of Statcounter Code -->
+</body>
+</html>
