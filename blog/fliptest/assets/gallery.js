@@ -18,7 +18,7 @@ window.GALLERY = [
   ],
   "models": [
    {
-    "name": "Omni 1.1 Flash",
+    "name": "Gemini Omni Flash 1.1",
     "pred": [
      "fall",
      "fall"
@@ -82,7 +82,7 @@ window.GALLERY = [
   ],
   "models": [
    {
-    "name": "Omni 1.1 Flash",
+    "name": "Gemini Omni Flash 1.1",
     "pred": [
      "pass",
      "pass"
@@ -146,7 +146,7 @@ window.GALLERY = [
   ],
   "models": [
    {
-    "name": "Omni 1.1 Flash",
+    "name": "Gemini Omni Flash 1.1",
     "pred": [
      "stuck",
      "stuck"
@@ -208,7 +208,7 @@ window.GALLERY = [
   ],
   "models": [
    {
-    "name": "Omni 1.1 Flash",
+    "name": "Gemini Omni Flash 1.1",
     "pred": [
      "fall",
      "fall"
@@ -270,7 +270,7 @@ window.GALLERY = [
   ],
   "models": [
    {
-    "name": "Omni 1.1 Flash",
+    "name": "Gemini Omni Flash 1.1",
     "pred": [
      "fit",
      "no_fit"
@@ -332,7 +332,7 @@ window.GALLERY = [
   ],
   "models": [
    {
-    "name": "Omni 1.1 Flash",
+    "name": "Gemini Omni Flash 1.1",
     "pred": [
      "left_down",
      "right_down"

@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>The Flip Test: Video World Models Fail to Learn the World State</title>
+<title>FlipTest: Current Video Models Do Not Model the World</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="FlipTest asks whether video world models change their prediction when a small change to the first frame flips the physical outcome.">
-<meta property="og:title" content="The Flip Test: Video World Models Fail to Learn the World State">
+<meta property="og:title" content="FlipTest: Current Video Models Do Not Model the World">
 <meta property="og:description" content="Two nearly identical first frames, two opposite futures. We test whether 11 video world models notice the difference.">
 <meta property="og:image" content="https://romyluo.com/blog/fliptest/assets/fig/blog/fig1-teaser.png">
 <link rel="icon" href="assets/fig/fliptest-mark.png">
@@ -433,7 +433,7 @@ figure.blog .frame hr { width: 100%; border: 0; border-top: 1px solid #ECEAF1; m
 <main class="page" id="top">
 
   <div class="col title">
-    <h1>The Flip Test: Video World Models Fail to Learn the World State</h1>
+    <h1>FlipTest: Current Video Models Do Not Model the World</h1>
   </div>
 
   <div class="col meta">
@@ -448,7 +448,7 @@ figure.blog .frame hr { width: 100%; border: 0; border-top: 1px solid #ECEAF1; m
         <a class="soon" aria-disabled="true" title="coming soon"><span class="lab">[Paper]</span><img src="assets/fig/card-paper.png" alt="First page of the paper" width="420" height="544"><span class="note">coming soon</span></a>
         <a class="soon" aria-disabled="true" title="coming soon"><span class="lab">[Code&amp;Data]</span><img src="assets/fig/card-code.png" alt="Code and data repository preview" width="600" height="300"><span class="note">coming soon</span></a>
         <a href="assets/video/fliptest.mp4" target="_blank" rel="noopener" title="Watch the walkthrough"><span class="lab">[Video]</span><img src="assets/fig/card-video-frame.jpg" alt="First frame of the video walkthrough: two rows of dominoes with a finger about to push the first one" width="640" height="360"><span class="note">2:56</span></a>
-        <a href="#citation" class="bibcard" title="Copy BibTeX"><span class="lab">[BibTeX]</span><span class="bibthumb">@article{fliptest2026,<br>&nbsp;title = {The Flip<br>&nbsp;Test: Video<br>&nbsp;World Models…</span></a>
+        <a href="#citation" class="bibcard" title="Copy BibTeX"><span class="lab">[BibTeX]</span><span class="bibthumb">@article{fliptest2026,<br>&nbsp;title = {FlipTest:<br>&nbsp;Current Video<br>&nbsp;Models Do Not…</span></a>
       </div>
     </div>
   </div>
@@ -507,7 +507,7 @@ figure.blog .frame hr { width: 100%; border: 0; border-top: 1px solid #ECEAF1; m
       <h2 id="results">Results: How do video world models do on FlipTest?</h2>
       <p>We test today's video world models on all three levels of FlipTest, from the easiest to the strictest. The test includes 11 image-to-video world models from four groups:</p>
       <ul>
-        <li><b>General video generators:</b> Omni 1.1 Flash, MiniMax-H3, Wan2.2-I2V-A14B, HunyuanVideo-1.5, CogVideoX1.5-5B-I2V.</li>
+        <li><b>General video generators:</b> Gemini Omni Flash 1.1, MiniMax-H3, Wan2.2-I2V-A14B, HunyuanVideo-1.5, CogVideoX1.5-5B-I2V.</li>
         <li><b>Reasoning-tuned:</b> VBVR-Wan2.2.</li>
         <li><b>Physical-AI models:</b> Cosmos-Predict2.5, Cosmos3-Nano, Cosmos3-Super.</li>
         <li><b>Robot-oriented models:</b> VPP2, LingBot-Video-MoE-30B-A3B.</li>
@@ -525,7 +525,7 @@ figure.blog .frame hr { width: 100%; border: 0; border-top: 1px solid #ECEAF1; m
     </figure>
 
     <div class="col">
-      <p><b>We find that video models rarely solve a pair.</b> On the simulated tasks, <mark class="hl">no model scores above 5.3%</mark>, far below the 25% from random guessing. On real scenes, Omni 1.1 Flash does best with <b>31.3%</b>, followed by MiniMax-H3 (25.3%) and Wan2.2-I2V-A14B (24.7%). Only Omni 1.1 Flash and MiniMax-H3 score higher than random guessing.</p>
+      <p><b>We find that video models rarely solve a pair.</b> On the simulated tasks, <mark class="hl">no model scores above 5.3%</mark>, far below the 25% from random guessing. On real scenes, Gemini Omni Flash 1.1 does best with <b>31.3%</b>, followed by MiniMax-H3 (25.3%) and Wan2.2-I2V-A14B (24.7%). Only Gemini Omni Flash 1.1 and MiniMax-H3 score higher than random guessing.</p>
       <p><b>We find that video models often give both frames the same outcome.</b> This behavior explains scores below random guessing. The two frames should produce opposite outcomes. If a model shows the same outcome for both, <b>one video is always wrong</b> and the pair is never solved.</p>
       <p><b>We find that bigger models, newer versions and extra tuning help only a little.</b> Averaged over both sim and real splits, the larger Cosmos3-Super (13.7%) scores slightly higher than Cosmos3-Nano (10.7%). The newer Cosmos3-Nano scores slightly higher than Cosmos-Predict2.5 (10.3%). Reasoning tuning does not help either: VBVR-Wan2.2 scores 14.0%, <b>exactly the same as its base model</b>. Physics-oriented training also <b>gives no advantage</b>. Cosmos3-Super reaches 13.7%, and Wan2.2, an open general model of similar scale, reaches 14.0%.</p>
       <p class="takeaway"><b>In short:</b> when two nearly identical scenes should have opposite outcomes, video models <b>usually show the same outcome for both</b>. Bigger, newer or further-trained models <b>barely do better</b>.</p>
@@ -584,7 +584,7 @@ figure.blog .frame hr { width: 100%; border: 0; border-top: 1px solid #ECEAF1; m
     </figure>
 
     <div class="col">
-      <p><b>We find that video models predict the same outcome along the whole sweep.</b> <mark class="hl">Their curves are flat on all four tasks</mark>. We compare how often a model predicts the event on the two sides of the boundary. The difference is <b>near zero</b>: +0.02 for Omni 1.1 Flash, +0.02 for Cosmos3-Super, 0.00 for VBVR-Wan2.2, and +0.06 for Nano Banana Pro. The curves stay flat even at the far ends of the sweep, where the scenes look different. On each task, a video model predicts the event almost always or almost never, wherever the object sits.</p>
+      <p><b>We find that video models predict the same outcome along the whole sweep.</b> <mark class="hl">Their curves are flat on all four tasks</mark>. We compare how often a model predicts the event on the two sides of the boundary. The difference is <b>near zero</b>: +0.02 for Gemini Omni Flash 1.1, +0.02 for Cosmos3-Super, 0.00 for VBVR-Wan2.2, and +0.06 for Nano Banana Pro. The curves stay flat even at the far ends of the sweep, where the scenes look different. On each task, a video model predicts the event almost always or almost never, wherever the object sits.</p>
       <p><b>We find that VLMs do follow the change.</b> Their curves <b>rise in an S shape</b> across the boundary, with gaps of +0.62 (Gemini 4 Argon) and +0.58 (Gemini 3.8 Flash).</p>
       <p><b>We find that VLMs put the boundary slightly in the wrong place.</b> Their curves usually <b>rise too early</b>. They predict that the object falls or slides while the scene is still on the stable side. However, this result depends on the task. On the block stack task, Gemini 4 Argon makes the opposite error.</p>
       <p class="takeaway"><b>In short:</b> as a scene moves step by step past the tipping point, video models <b>predict the same outcome</b>. VLMs like Gemini <b>do follow the change</b>, but they usually expect the outcome to flip <b>too early</b>.</p>
@@ -628,7 +628,7 @@ figure.blog .frame hr { width: 100%; border: 0; border-top: 1px solid #ECEAF1; m
       <h2 id="told">Told the answer, can video models draw it?</h2>
       <p>The previous section shows that the outcome can be found from the first frame alone. A video model has two jobs. It must predict the outcome, and it must draw the outcome as video. We now test the second job alone. When we tell the model the correct outcome, <b>any mistake that remains comes from drawing</b>.</p>
       <p>From the 300 level 1 pairs, we use the 600 first frames and change only one part of each prompt. The neutral prompt names both possible outcomes. Example: <code class="prompt">the box either stays put on the tabletop or tips over the edge and falls to the floor, depending on how far it overhangs</code>. The new prompt states the true outcome instead. Example: <code class="prompt">the box tips over the edge and falls to the floor</code>. With the rest of the prompt unchanged, all 11 models generate new videos. A judge (Gemini 3.8 Flash) reads which outcome each video shows. We count unclear videos as wrong.</p>
-      <p><b>We find that knowing the answer helps a lot.</b> Pair accuracy increases <b>from 18.3% to 73.7%</b> for Omni 1.1 Flash (Figure 8). It increases from 14.3% to 68.0% for MiniMax-H3 and from 14.0% to 55.7% for Wan2.2-I2V-A14B. This gap shows that <mark class="hl">video models cannot predict the outcome from the image on their own</mark>.</p>
+      <p><b>We find that knowing the answer helps a lot.</b> Pair accuracy increases <b>from 18.3% to 73.7%</b> for Gemini Omni Flash 1.1 (Figure 8). It increases from 14.3% to 68.0% for MiniMax-H3 and from 14.0% to 55.7% for Wan2.2-I2V-A14B. This gap shows that <mark class="hl">video models cannot predict the outcome from the image on their own</mark>.</p>
     </div>
 
     <figure class="blog">
@@ -637,7 +637,7 @@ figure.blog .frame hr { width: 100%; border: 0; border-top: 1px solid #ECEAF1; m
     </figure>
 
     <div class="col">
-      <p><b>We find that video models still often draw the wrong outcome.</b> Even with the answer, the best model <b>misses about a quarter of pairs</b>. Simulated scenes are harder. Omni 1.1 Flash solves 86.7% of real pairs and only 60.7% of simulated pairs. CogVideoX1.5-5B-I2V solves only 11.0% of pairs.</p>
+      <p><b>We find that video models still often draw the wrong outcome.</b> Even with the answer, the best model <b>misses about a quarter of pairs</b>. Simulated scenes are harder. Gemini Omni Flash 1.1 solves 86.7% of real pairs and only 60.7% of simulated pairs. CogVideoX1.5-5B-I2V solves only 11.0% of pairs.</p>
       <p class="takeaway"><b>In short:</b> when we tell video models the outcome, they get far more pairs right. <b>Predicting the outcome is their biggest problem.</b> Even with the answer, they often draw the wrong outcome. <b>Drawing is a problem too.</b></p>
 
       <h2 id="thoughts">Our view on what comes next</h2>
@@ -656,8 +656,8 @@ figure.blog .frame hr { width: 100%; border: 0; border-top: 1px solid #ECEAF1; m
 
       <h2 id="citation">Citation</h2>
       <p>If you find FlipTest useful, please cite:</p>
-      <div class="citebox"><a href="#citation" class="bibcard" title="Copy BibTeX"><span class="lab">[BibTeX]</span><span class="bibthumb">@article{fliptest2026,<br>&nbsp;title = {The Flip<br>&nbsp;Test: Video<br>&nbsp;World Models…</span><span class="note">click to copy</span></a><pre class="bib" id="bib">@article{fliptest2026,
-  title   = {The Flip Test: Video World Models Fail to Learn the World State},
+      <div class="citebox"><a href="#citation" class="bibcard" title="Copy BibTeX"><span class="lab">[BibTeX]</span><span class="bibthumb">@article{fliptest2026,<br>&nbsp;title = {FlipTest:<br>&nbsp;Current Video<br>&nbsp;Models Do Not…</span><span class="note">click to copy</span></a><pre class="bib" id="bib">@article{fliptest2026,
+  title   = {FlipTest: Current Video Models Do Not Model the World},
   author  = {Luo, Mi and Yu, Lijun and Yu, Adams Wei and Cao, Ang and Sun, Baochen and Yang, Ming-Hsuan and Hua, Nan and Hao, Yuan and Dimakis, Alex and Xu, Ya and Chi, Ed H. and Wang, Xuezhi and Liu, Yinxiao},
   journal = {arXiv preprint},
   year    = {2026}
